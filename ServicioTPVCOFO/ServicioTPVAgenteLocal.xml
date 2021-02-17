@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfigTPVCOFO xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Usages>
+    <Usage DeviceID="CPU" Enable="true" Threshold="20" />
+    <Usage DeviceID="PhysicalMemory" Enable="true" Threshold="30" />
+    <Usage DeviceID="VirtualMemory" Enable="true" Threshold="40" />
+    <Usage DeviceID="DiskSpace" Enable="true" Threshold="50" />
+  </Usages>
+  <ListHosts>
+    <Host HostName="www.google.com" TimeCheckCycle="60000" TimeStartDelay="2000" TimeStopTimeout="10000" BitSaveResponse="false" BitBatchResponse="false" BatchName="" TimeMinuteBatchCycle="5" />
+    <Host HostName="www.microsoft.com" TimeCheckCycle="60000" TimeStartDelay="2000" TimeStopTimeout="10000" BitSaveResponse="false" BitBatchResponse="false" BatchName="" TimeMinuteBatchCycle="5" />
+    <Host HostName="www.cnn.com" TimeCheckCycle="60000" TimeStartDelay="2000" TimeStopTimeout="10000" BitSaveResponse="false" BitBatchResponse="false" BatchName="" TimeMinuteBatchCycle="5" />
+  </ListHosts>
+  <ListServicioWeb>
+    <ServicioWeb EndPoint="http://www.webservicex.net/globalweather.asmx" XML="&lt;GetCitiesByCountry xmlns=&quot;http://www.webserviceX.NET&quot;&gt;&lt;CountryName&gt;Peru&lt;/CountryName&gt;&lt;/GetCitiesByCountry&gt;" TimeCheckCycle="120000" TimeStartDelay="2000" BitSaveResponse="true" BitBatchResponse="true" BatchName="Batch_WS_CitiesByCountry" TimeMinuteBatchCycle="5" />
+    <ServicioWeb EndPoint="http://www.webservicex.net/ConvertTemperature.asmx" XML="&lt;ConvertTemp xmlns=&quot;http://www.webserviceX.NET/&quot;&gt;&lt;Temperature&gt;40&lt;/Temperature&gt;&lt;FromUnit&gt;degreeCelsius&lt;/FromUnit&gt;&lt;ToUnit&gt;degreeFahrenheit&lt;/ToUnit&gt;&lt;/ConvertTemp&gt;" TimeCheckCycle="120000" TimeStartDelay="2000" BitSaveResponse="true" BitBatchResponse="true" BatchName="Batch_WS_CitiesByCountry" TimeMinuteBatchCycle="5" />
+    <ServicioWeb EndPoint="http://www.webservicex.net/convertMetricWeight.asmx" XML="&lt;ChangeMetricWeightUnit xmlns=&quot;http://www.webserviceX.NET/&quot;&gt;&lt;MetricWeightValue&gt;1500&lt;/MetricWeightValue&gt;&lt;fromMetricWeightUnit&gt;gram&lt;/fromMetricWeightUnit&gt;&lt;toMetricWeightUnit&gt;kilogram&lt;/toMetricWeightUnit&gt;&lt;/ChangeMetricWeightUnit&gt;" TimeCheckCycle="120000" TimeStartDelay="2000" BitSaveResponse="true" BitBatchResponse="true" BatchName="Batch_WS_ChangeMetricWeightUnit" TimeMinuteBatchCycle="5" />
+  </ListServicioWeb>
+  <ListSocket>
+    <Socket IP="10.232.100.191" Puerto="11000" TimeCheckCycle="120000" TimeStartDelay="2000" TimeStopTimeout="1000" BitSaveResponse="true" BitBatchResponse="true" BatchName="Batch_SOCKET_10.232.100.62_11000" TimeMinuteBatchCycle="5" />
+    <Socket IP="127.0.0.1" Puerto="11111" TimeCheckCycle="120000" TimeStartDelay="2000" TimeStopTimeout="1000" BitSaveResponse="false" BitBatchResponse="false" BatchName="" TimeMinuteBatchCycle="5" />
+    <Socket IP="10.232.100.62" Puerto="11001" TimeCheckCycle="120000" TimeStartDelay="2000" TimeStopTimeout="1000" BitSaveResponse="true" BitBatchResponse="true" BatchName="Batch_SOCKET_127.0.0.1_11111" TimeMinuteBatchCycle="5" />
+  </ListSocket>
+  <ListLibrary>
+    <Library LibreriaName="LibreriaTest" ClaseName="SinParametro" FuncionName="FuncionTestSP" Parameters="" TimeCheckCycle="120000" TimeStartDelay="2000" BitSaveResponse="true" BitBatchResponse="true" BatchName="LibreriaTest_SinParametro_FuncionTestSP" TimeMinuteBatchCycle="5" />
+    <Library LibreriaName="LibreriaTest" ClaseName="ConParametro" FuncionName="FuncionTestCP" Parameters="ParCP1" TimeCheckCycle="120000" TimeStartDelay="2000" BitSaveResponse="true" BitBatchResponse="true" BatchName="LibreriaTest_ConParametro_FuncionTestCP01" TimeMinuteBatchCycle="5" />
+    <Library LibreriaName="LibreriaTest" ClaseName="ConParametro" FuncionName="FuncionTestCP2" Parameters="ParCP1|ParCP2" TimeCheckCycle="120000" TimeStartDelay="2000" BitSaveResponse="true" BitBatchResponse="true" BatchName="LibreriaTest_ConParametro_FuncionTestCP02" TimeMinuteBatchCycle="5" />
+  </ListLibrary>
+</ServiceConfigTPVCOFO>
