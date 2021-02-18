@@ -15,8 +15,8 @@ namespace DOMSLibrary
 
         }
 
-        public string fnObtenerTankGaugeData(string pstrHost, string pbytPosId, string pscompany, string pstoreID, string psUserID, string pstrMaquina, string strTanksID, Forecourt fc0, IFCConfig ifc0) {
-
+        public string fnObtenerTankGaugeData(string pstrHost, string pbytPosId, string pscompany, string pstoreID, string psUserID, string pstrMaquina, string strTanksID, Forecourt fc0, IFCConfig ifc0)
+        {
             TankGaugeDataHistoryBE objtgSonda = null;
             List<TankGaugeDataHistoryBE> LstObjtgSonda = null;
             TankGaugeDataCollection objddcTanke = null;
@@ -26,6 +26,9 @@ namespace DOMSLibrary
 
             try
             {
+                    /*
+                     * MX- Se utiliza para obtener los parametros del TankID con el TankGaudeID de la configuracio.
+                    */
                     string[] objectItemTanks = strTanksID.Split('|');
 
                     Thread.Sleep(5000);
