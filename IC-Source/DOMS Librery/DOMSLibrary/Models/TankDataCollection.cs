@@ -10,5 +10,6 @@ namespace DOMSLibrary
     {
         public TankDataId TankDataId { get; set; }
         public dynamic Data { get; set; }
+        public string DataDescription { get; set; }
     }
 }

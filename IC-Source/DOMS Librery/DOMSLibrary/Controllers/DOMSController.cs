@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DOMSLibrary
@@ -12,41 +13,40 @@ namespace DOMSLibrary
         #region Singleton
         private static DOMSController _instance = null;
 
-        private DOMSController()
+        protected DOMSController()
         {
 
         }
-        public static DOMSController GetInstance()
+        public static DOMSController GetInstance
         {
-            if (_instance == null)
-                _instance = new DOMSController();
+            get
+            {
+                if (_instance == null)
+                    _instance = new DOMSController();
 
-            return _instance;
+                return _instance;
+            }
         }
         #endregion
 
         /// <summary>
-        /// Semaforo mutex para acceso a doms
+        /// Semaforo  para acceso a doms
         /// </summary>
-        private object _mutex = new object();
         private SemaphoreSlim _DOMSSemaphore = new SemaphoreSlim(0, 1);
 
         private Forecourt Forecourt = null;
 
         private IFCConfig IFCConfig = null;
 
-        public IEnumerable<TankInfo> ObtenerTanks(string host, string posId, string maquina)
+        public IEnumerable<TankInfo> ObtenerTanksGaugeData(string host, string posId, string maquina)
         {
-
             try
             {
                 _DOMSSemaphore.Wait();
                 var ret = new List<TankInfo>();
                 // BLOQUE CRITICO
-                // 1: conecta
-                _performConection();
+                ConnectToDOMS();
 
-                // 2 usa los datos
                 TankGaugeCollection tgcSondaa = IFCConfig.TankGauges;
                 foreach (TankGauge tankInfo in tgcSondaa)
                 {
@@ -102,22 +102,6 @@ namespace DOMSLibrary
         private void _performDisconnect()
         {
             Forecourt.Disconnect();
-        }
-
-        // PRECONDITION: LLAMAR DENTRO DE BLOQUE CRITICO
-        private void SubscribeToEvents()
-        {
-            Forecourt.FcStatusChanged += OFcStatusChanged;
-        }
-
-        private void OFcStatusChanged(PSS_Forecourt_Lib.IFCStatus fcStatus)
-        {
-            /////////
-            ///
-            if (fcStatus.FcStatus1Flags == FcStatus2Flags.DISCONNECT)
-            {
-                DOMSStatus = DOMSStatus.disconected;
-            }
         }
     }
 }

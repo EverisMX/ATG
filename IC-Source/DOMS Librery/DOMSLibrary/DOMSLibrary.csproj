@@ -79,6 +79,9 @@
     <Compile Include="DOMSTankGauge.cs" />
     <Compile Include="Helpers\DOMSConnection.cs" />
     <Compile Include="Helpers\TankDataId.cs" />
+    <Compile Include="Helpers\TgDeliveryDataItemIds.cs" />
+    <Compile Include="Helpers\TgTicketedDeliveryDataItemIds.cs" />
+    <Compile Include="Models\DeliveryData.cs" />
     <Compile Include="Models\TankDataCollection.cs" />
     <Compile Include="Models\TankInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

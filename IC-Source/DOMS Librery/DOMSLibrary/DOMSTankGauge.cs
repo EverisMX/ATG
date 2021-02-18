@@ -10,12 +10,14 @@ namespace DOMSLibrary
 {
     public class DOMSTankGauge
     {
+        private DOMSController Controller = DOMSController.GetInstance();
+
         public DOMSTankGauge()
         {
 
         }
 
-        public string fnObtenerTankGaugeData(string pstrHost, string pbytPosId, string pscompany, string pstoreID, string psUserID, string pstrMaquina, string strTanksID, Forecourt fc0, IFCConfig ifc0)
+        public string fnObtenerTankGaugeData(string pstrHost, string pbytPosId, string pscompany, string pstoreID, string psUserID, string pstrMaquina, string strTanksID)
         {
             TankGaugeDataHistoryBE objtgSonda = null;
             List<TankGaugeDataHistoryBE> LstObjtgSonda = null;
@@ -26,94 +28,95 @@ namespace DOMSLibrary
 
             try
             {
-                    /*
-                     * MX- Se utiliza para obtener los parametros del TankID con el TankGaudeID de la configuracio.
-                    */
-                    string[] objectItemTanks = strTanksID.Split('|');
+                /*
+                    * MX- Se utiliza para obtener los parametros del TankID con el TankGaudeID de la configuracio.
+                */
+                string[] objectItemTanks = strTanksID.Split('|');
+                Thread.Sleep(5000);
+                var tank_Info_Data = Controller.ObtenerTanksGaugeData(pstrHost, pbytPosId,pstrMaquina);
 
-                    Thread.Sleep(5000);
-                    fc0.EventsDisabled = false;
-                    tgcSondaa = (TankGaugeCollection)ifc0.TankGauges;
+                fc0.EventsDisabled = false;
+                tgcSondaa = (TankGaugeCollection)ifc0.TankGauges;
 
-                    if (tgcSondaa.Count > 0)
+                if (tgcSondaa.Count > 0)
+                {
+                    LstObjtgSonda = new List<TankGaugeDataHistoryBE>();
+                    strFechaIso = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    foreach (TankGauge tgesondaa2 in tgcSondaa)
                     {
-                        LstObjtgSonda = new List<TankGaugeDataHistoryBE>();
-                        strFechaIso = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                        foreach (TankGauge tgesondaa2 in tgcSondaa)
+                        objtgSonda = new TankGaugeDataHistoryBE();
+                        objddcTanke = tgesondaa2.DataCollection;
+                        objtgSonda.Ncompany = pscompany;
+                        objtgSonda.StoreID = pstoreID;
+                        objtgSonda.Date = strFechaIso;
+                        objtgSonda.UserID = psUserID;
+
+                        for (int i = 0; i < objectItemTanks.Length; i++)
                         {
+                            string[] objectItemTankID = objectItemTanks[i].Split('-');
+                            if (Convert.ToInt32(tgesondaa2.Id) == Convert.ToInt32(objectItemTankID[0]))
+                                objtgSonda.TgID = Convert.ToInt32(objectItemTankID[1]);
 
-                            objtgSonda = new TankGaugeDataHistoryBE();
-                            objddcTanke = tgesondaa2.DataCollection;
-                            objtgSonda.Ncompany = pscompany;
-                            objtgSonda.StoreID = pstoreID;
-                            objtgSonda.Date = strFechaIso;
-                            objtgSonda.UserID = psUserID;
-
-                            for (int i = 0; i < objectItemTanks.Length; i++)
-                            {
-                                string[] objectItemTankID = objectItemTanks[i].Split('-');
-                                if (Convert.ToInt32(tgesondaa2.Id) == Convert.ToInt32(objectItemTankID[0]))
-                                    objtgSonda.TgID = Convert.ToInt32(objectItemTankID[1]);
-
-                                objectItemTankID = null;
-                            }
-
-                            foreach (TankGaugeData tgdData in tgesondaa2.DataCollection)
-                            {
-                                if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PRODUCT_LEVEL)
-                                    objtgSonda.TankProductLevel = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_WATER_LEVEL)
-                                    objtgSonda.TankWaterLevel = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TOTAL_OBSERVED_VOL)
-                                    objtgSonda.TankTotalObservedVol = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_WATER_VOL)
-                                    objtgSonda.TankWaterVol = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_GROSS_OBSERVED_VOL)
-                                    objtgSonda.TankGrossObservedVol = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_GROSS_STD_VOL)
-                                    objtgSonda.TankGrossStdVol = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_AVAILABLE_ROOM)
-                                    objtgSonda.TankAvailableRoom = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_AVERAGE_TEMP)
-                                    objtgSonda.TankAverageTemp = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_DATA_LAST_UPDATE)
-                                   objtgSonda.TankDataLastUpdateDateAndTime = tgdData.Data.Year + "-" + tgdData.Data.Month + "-" + tgdData.Data.Day + " " + tgdData.Data.Hour+":"+ tgdData.Data.Minute +":"+ tgdData.Data.Second;
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_MAX_SAFE_FILL_CAPACITY)
-                                    objtgSonda.TankMaxSafeFillCapacity = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_SHELL_CAPACITY)
-                                    objtgSonda.TankShellCapacity = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)
-                                    objtgSonda.TankProductMass = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_DENSITY)
-                                    objtgSonda.TankProductDensity = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_TC_DENSITY)
-                                    objtgSonda.TankProductTcDensity = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_DENSITY_PROBE_TEMP)
-                                    objtgSonda.TankDensityProbeTemp = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)//no se encuentra enum por defecto TGDID_TANK_PROD_MASS
-                                    objtgSonda.TankSludGeLevel = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)//no se encuentra enum por defecto TGDID_TANK_PROD_MASS
-                                    objtgSonda.TankOilSepOilThickness = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)//no se encuentra enum por defecto TGDID_TANK_PROD_MASS
-                                    objtgSonda.TankOilSepOilVolume = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_TEMP_SENSOR1)
-                                    objtgSonda.TankTempSensor1 = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_TEMP_SENSOR2)
-                                    objtgSonda.TankTempSensor2 = Convert.ToDecimal(tgdData.Data);
-                                else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_TEMP_SENSOR3)
-                                    objtgSonda.TankTempSensor3 = Convert.ToDecimal(tgdData.Data);
-                            }
-                            LstObjtgSonda.Add(objtgSonda);
+                            objectItemTankID = null;
                         }
-                        json = TransformJson(LstObjtgSonda);
-                    }
-                    else
-                    {
-                        json = "";
-                    }
 
-                return json;
+                        foreach (TankGaugeData tgdData in tgesondaa2.DataCollection)
+                        {
+                            if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PRODUCT_LEVEL)
+                                objtgSonda.TankProductLevel = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_WATER_LEVEL)
+                                objtgSonda.TankWaterLevel = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TOTAL_OBSERVED_VOL)
+                                objtgSonda.TankTotalObservedVol = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_WATER_VOL)
+                                objtgSonda.TankWaterVol = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_GROSS_OBSERVED_VOL)
+                                objtgSonda.TankGrossObservedVol = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_GROSS_STD_VOL)
+                                objtgSonda.TankGrossStdVol = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_AVAILABLE_ROOM)
+                                objtgSonda.TankAvailableRoom = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_AVERAGE_TEMP)
+                                objtgSonda.TankAverageTemp = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_DATA_LAST_UPDATE)
+                                objtgSonda.TankDataLastUpdateDateAndTime = tgdData.Data.Year + "-" + tgdData.Data.Month + "-" + tgdData.Data.Day + " " + tgdData.Data.Hour+":"+ tgdData.Data.Minute +":"+ tgdData.Data.Second;
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_MAX_SAFE_FILL_CAPACITY)
+                                objtgSonda.TankMaxSafeFillCapacity = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_SHELL_CAPACITY)
+                                objtgSonda.TankShellCapacity = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)
+                                objtgSonda.TankProductMass = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_DENSITY)
+                                objtgSonda.TankProductDensity = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_TC_DENSITY)
+                                objtgSonda.TankProductTcDensity = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_DENSITY_PROBE_TEMP)
+                                objtgSonda.TankDensityProbeTemp = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)//no se encuentra enum por defecto TGDID_TANK_PROD_MASS
+                                objtgSonda.TankSludGeLevel = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)//no se encuentra enum por defecto TGDID_TANK_PROD_MASS
+                                objtgSonda.TankOilSepOilThickness = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_PROD_MASS)//no se encuentra enum por defecto TGDID_TANK_PROD_MASS
+                                objtgSonda.TankOilSepOilVolume = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_TEMP_SENSOR1)
+                                objtgSonda.TankTempSensor1 = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_TEMP_SENSOR2)
+                                objtgSonda.TankTempSensor2 = Convert.ToDecimal(tgdData.Data);
+                            else if (tgdData.TankDataId == TankDataIds.TGDID_TANK_TEMP_SENSOR3)
+                                objtgSonda.TankTempSensor3 = Convert.ToDecimal(tgdData.Data);
+                        }
+                        LstObjtgSonda.Add(objtgSonda);
+                    }
+                    json = TransformJson(LstObjtgSonda);
+                }
+                else
+                {
+                    json = "";
+                }
+
+            return json;
             }
             catch (Exception ex)
             {
