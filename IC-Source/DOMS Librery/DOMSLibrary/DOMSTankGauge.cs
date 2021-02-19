@@ -10,7 +10,7 @@ namespace DOMSLibrary
 {
     public class DOMSTankGauge
     {
-        private DOMSController Controller = DOMSController.GetInstance();
+        private DOMSController Controller = DOMSController.GetInstance;
 
         public DOMSTankGauge()
         {
@@ -141,114 +141,116 @@ namespace DOMSLibrary
 
             try
             {
-                    string[] objectItemTanksDev = strTanksID.Split('|');
+                string[] objectItemTanksDev = strTanksID.Split('|');
 
-                    Thread.Sleep(5000);
-                    bytPosID = Convert.ToByte(pbytPosId);
-                    fc1.EventsDisabled = false;
-                    fc1.GetSiteDeliveryStatus(out bitEstadoFlag, out bitDeliverySeq, out objtgcTankeDel);
+                Thread.Sleep(5000);
+                bytPosID = Convert.ToByte(pbytPosId);
+                fc1.EventsDisabled = false;
+                fc1.GetSiteDeliveryStatus(out bitEstadoFlag, out bitDeliverySeq, out objtgcTankeDel);
 
-                    if (bitEstadoFlag == 0) // indica que no se obtuvo informe report deilverys.
+                if (bitEstadoFlag == 0) // indica que no se obtuvo informe report deilverys.
+                {
+                    return "";
+                }
+                ctdParametro = new ClrTankDeliveryDataParms();
+
+                var tankDeliveryInfo = Controller.ObtenerDeliveriesTanksGauge(pstrHost, pbytPosId, pstrMaquina);
+
+                if (objtgcTankeDel.Count > 0)
+                {
+                    LstobjTank = new List<TankGaugeDeliveryHistoryBE>();
+                    strFechaIso= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    foreach (TankGauge tgeSonda1 in objtgcTankeDel)
                     {
-                        return "";
-                    }
-                    ctdParametro = new ClrTankDeliveryDataParms();
 
-                    if (objtgcTankeDel.Count > 0)
-                    {
-                        LstobjTank = new List<TankGaugeDeliveryHistoryBE>();
-                        strFechaIso= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                        ddcDelivery = tgeSonda1.GetDeliveryData(bytPosID, out byNroReport);
 
-                        foreach (TankGauge tgeSonda1 in objtgcTankeDel)
+                        if (ddcDelivery.Count > 0)
                         {
+                            objTank = new TankGaugeDeliveryHistoryBE();
+                            objTank.Ncompany = pscompany;
+                            objTank.StoreID = pstoreID;
+                            objTank.Date = strFechaIso;
+                            objTank.UserID = psUserID;
+                            objTank.TgID = tgeSonda1.Id;
 
-                            ddcDelivery = tgeSonda1.GetDeliveryData(bytPosID, out byNroReport);
-
-                            if (ddcDelivery.Count > 0)
+                            for (int i = 0; i < objectItemTanksDev.Length; i++)
                             {
-                                objTank = new TankGaugeDeliveryHistoryBE();
-                                objTank.Ncompany = pscompany;
-                                objTank.StoreID = pstoreID;
-                                objTank.Date = strFechaIso;
-                                objTank.UserID = psUserID;
-                                objTank.TgID = tgeSonda1.Id;
+                                string[] objectItemTankDevID = objectItemTanksDev[i].Split('-');
+                                if (Convert.ToInt32(tgeSonda1.Id) == Convert.ToInt32(objectItemTankDevID[0]))
+                                    objTank.TgID = Convert.ToInt32(objectItemTankDevID[1]);
 
-                                for (int i = 0; i < objectItemTanksDev.Length; i++)
-                                {
-                                    string[] objectItemTankDevID = objectItemTanksDev[i].Split('-');
-                                    if (Convert.ToInt32(tgeSonda1.Id) == Convert.ToInt32(objectItemTankDevID[0]))
-                                        objTank.TgID = Convert.ToInt32(objectItemTankDevID[1]);
+                                objectItemTankDevID = null;
+                            }
 
-                                    objectItemTankDevID = null;
-                                }
-
-                                foreach (DeliveryData ddData in ddcDelivery)
-                                {
-                                    objTank.Deliveries = ddData.DataDescription;
-                                if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_PRODUCT_CODE)
-                                    objTank.TgProductCode = ddData.Data;
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_DATE_AND_TIME)
-                                    objTank.TankDeliveryStartDateAndTime = ddData.Data.Year + "-" + ddData.Data.Month + "-" + ddData.Data.Day + " " + ddData.Data.Hour + ":" + ddData.Data.Minute + ":" + ddData.Data.Second;
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_VOL)
-                                    objTank.TankDeliveryStartProdVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERY_SEQ_NO)
-                                    objTank.TankDeliverySeqNo = ddData.Data;
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_WATER_VOL)
-                                    objTank.TankDeliveryStartWaterVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_TEMP)
-                                    objTank.TankDeliveryStartTemp = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_DATE_AND_TIME)
-                                    objTank.TankDeliveryStopDateAndTime = ddData.Data.Year + "-" + ddData.Data.Month + "-" + ddData.Data.Day + " " + ddData.Data.Hour + ":" + ddData.Data.Minute + ":" + ddData.Data.Second;
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_VOL)
-                                    objTank.TankDeliveryStopProdVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_WATER_VOL)
-                                    objTank.TankDeliveryStopWaterVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_TEMP)
-                                    objTank.TankDeliveryStopTemp = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERED_VOL)
-                                    objTank.TankDeliveredVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_DENSITY)
-                                    objTank.TankDeliveryStartProductDensity = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERY_REPORT_SEQ_NO)
-                                    objTank.DeliveryReportSeqNo = ddData.Data;
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_DENSITY)
-                                    objTank.TankDeliveryStopProductDensity = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_MASS)
-                                    objTank.TankDeliveryStartProductMass = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_MASS)
-                                    objTank.TankDeliveryStopProductMass = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_TC_VOL)
-                                    objTank.TankDeliveryStartProdTcVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_TC_VOL)
-                                    objTank.TankDeliveryStopProdTcVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERED_TC_VOL)
-                                    objTank.TankDeliveredTcVol = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_ADJUSTED_VOL)
-                                    objTank.TankAdjustedVolume = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_ADJUSTED_TC_VOL)
-                                    objTank.TankAdjustedTcVolume = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_TC_DENSITY)
-                                    objTank.TankDeliveryStartProductTcDensity = Convert.ToDecimal(ddData.Data);
-                                else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_TC_DENSITY)
-                                    objTank.TankDeliveryStopProductTcDensity = Convert.ToDecimal(ddData.Data);
-
-                                }
-
-                                LstobjTank.Add(objTank);
+                            foreach (DeliveriesData ddData in ddcDelivery)
+                            {
+                                objTank.Deliveries = ddData.DataDescription;
+                            if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_PRODUCT_CODE)
+                                objTank.TgProductCode = ddData.Data;
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_DATE_AND_TIME)
+                                objTank.TankDeliveryStartDateAndTime = ddData.Data.Year + "-" + ddData.Data.Month + "-" + ddData.Data.Day + " " + ddData.Data.Hour + ":" + ddData.Data.Minute + ":" + ddData.Data.Second;
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_VOL)
+                                objTank.TankDeliveryStartProdVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERY_SEQ_NO)
+                                objTank.TankDeliverySeqNo = ddData.Data;
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_WATER_VOL)
+                                objTank.TankDeliveryStartWaterVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_TEMP)
+                                objTank.TankDeliveryStartTemp = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_DATE_AND_TIME)
+                                objTank.TankDeliveryStopDateAndTime = ddData.Data.Year + "-" + ddData.Data.Month + "-" + ddData.Data.Day + " " + ddData.Data.Hour + ":" + ddData.Data.Minute + ":" + ddData.Data.Second;
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_VOL)
+                                objTank.TankDeliveryStopProdVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_WATER_VOL)
+                                objTank.TankDeliveryStopWaterVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_TEMP)
+                                objTank.TankDeliveryStopTemp = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERED_VOL)
+                                objTank.TankDeliveredVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_DENSITY)
+                                objTank.TankDeliveryStartProductDensity = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERY_REPORT_SEQ_NO)
+                                objTank.DeliveryReportSeqNo = ddData.Data;
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_DENSITY)
+                                objTank.TankDeliveryStopProductDensity = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_MASS)
+                                objTank.TankDeliveryStartProductMass = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_MASS)
+                                objTank.TankDeliveryStopProductMass = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_TC_VOL)
+                                objTank.TankDeliveryStartProdTcVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_TC_VOL)
+                                objTank.TankDeliveryStopProdTcVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_DELIVERED_TC_VOL)
+                                objTank.TankDeliveredTcVol = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_ADJUSTED_VOL)
+                                objTank.TankAdjustedVolume = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_ADJUSTED_TC_VOL)
+                                objTank.TankAdjustedTcVolume = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_START_PROD_TC_DENSITY)
+                                objTank.TankDeliveryStartProductTcDensity = Convert.ToDecimal(ddData.Data);
+                            else if (ddData.DeliveryDataId == TgDeliveryDataItemIds.TGDDI_STOP_PROD_TC_DENSITY)
+                                objTank.TankDeliveryStopProductTcDensity = Convert.ToDecimal(ddData.Data);
 
                             }
+
+                            LstobjTank.Add(objTank);
+
                         }
-
-                        json=  TransformJson(LstobjTank);
-                        ctdParametro.DeliveryReportSeqNo = bitDeliverySeq;
-                        ctdParametro.PosId = bytPosID;
-                        fc1.ClrTankDeliveryData(ctdParametro);
-
                     }
-                    else
-                    {
-                        json = "";
-                    }
+
+                    json=  TransformJson(LstobjTank);
+                    ctdParametro.DeliveryReportSeqNo = bitDeliverySeq;
+                    ctdParametro.PosId = bytPosID;
+                    fc1.ClrTankDeliveryData(ctdParametro);
+
+                }
+                else
+                {
+                    json = "";
+                }
 
                 return json;
 
@@ -275,12 +277,13 @@ namespace DOMSLibrary
                     GradeCollection gcGrade = null;
                     FuellingPointTotals fptPunto = null;
 
-                    fc2.EventsDisabled = false;
-                    gcGrade = ifc2.Grades;
+                    //fc2.EventsDisabled = false;
+                    //gcGrade = ifc2.Grades;
                     strFechaIso= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                    foreach (FuellingPoint fp in ifc2.FuellingPoints)
-                    {
-                        fptPunto = fp.Totals[FpTotalTypes.GT_FUELLING_POINT_TOTAL];
+
+                    //foreach (FuellingPoint fp in ifc2.FuellingPoints)
+                    //{
+                        //fptPunto = fp.Totals[FuellingPointsTotalTypes.GT_FUELLING_POINT_TOTAL];
                         foreach (GradeTotal grtGrado in fptPunto.GradeTotals)
                         {
                             objFuelling = new TankGaugeFuellingBE();
@@ -296,7 +299,7 @@ namespace DOMSLibrary
                             objFuelling.GradeVolTotal = Convert.ToDecimal(grtGrado.GradeVolTotal);
                             lsttgfFuelling.Add(objFuelling);
                         }
-                    }
+                    //}
                     json = TransformJson(lsttgfFuelling);
                
                 return json;
