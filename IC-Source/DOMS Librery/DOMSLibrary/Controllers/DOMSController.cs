@@ -15,8 +15,10 @@ namespace DOMSLibrary
 
         protected DOMSController()
         {
-
+            Forecourt = new Forecourt();
+            ConnectToDOMS();
         }
+
         public static DOMSController GetInstance
         {
             get
@@ -35,7 +37,6 @@ namespace DOMSLibrary
         private SemaphoreSlim _DOMSSemaphore = new SemaphoreSlim(0, 1);
 
         private Forecourt Forecourt = null;
-
         private IFCConfig IFCConfig = null;
 
         /// <summary>
@@ -45,7 +46,7 @@ namespace DOMSLibrary
         /// <param name="posId"></param>
         /// <param name="maquina"></param>
         /// <returns IEnumerable<TankInfo>></returns>
-        public IEnumerable<TankInfo> ObtenerTanksGaugeData(string host, string posId, string maquina)
+        public IEnumerable<TankInfo> GetTanksGaugeDataDOMS(string host, string posId, string maquina)
         {
             try
             {
@@ -54,24 +55,28 @@ namespace DOMSLibrary
                 // BLOQUE CRITICO
                 ConnectToDOMS();
 
+                Forecourt.EventsDisabled = false;
                 TankGaugeCollection tgcSondaa = IFCConfig.TankGauges;
-                foreach (TankGauge tankInfo in tgcSondaa)
+                if(tgcSondaa.Count > 0)
                 {
-                    var tank = new TankInfo
+                    foreach (TankGauge tankInfo in tgcSondaa)
                     {
-                        Id = Convert.ToInt32(tankInfo.Id),
-                        DataCollection = new List<TankDataCollection>(tankInfo.DataCollection.Count)
-                    };
-
-                    foreach (TankGaugeData tgdData in tankInfo.DataCollection)
-                    {
-                        tank.DataCollection.Add(new TankDataCollection
+                        var tank = new TankInfo
                         {
-                            Data = tgdData.Data,
-                            TankDataId = (TankDataId)tgdData.TankDataId
-                        });
+                            Id = Convert.ToInt32(tankInfo.Id),
+                            DataCollection = new List<TankDataCollection>(tankInfo.DataCollection.Count)
+                        };
+
+                        foreach (TankGaugeData tgdData in tankInfo.DataCollection)
+                        {
+                            tank.DataCollection.Add(new TankDataCollection
+                            {
+                                Data = tgdData.Data,
+                                TankDataId = (TankDataId)tgdData.TankDataId
+                            });
+                        }
+                        ret.Add(tank);
                     }
-                    ret.Add(tank);
                 }
                 return ret;
             }
@@ -87,7 +92,14 @@ namespace DOMSLibrary
             }
         }
 
-        public IEnumerable<TankDeliveryInfo> ObtenerDeliveriesTanksGauge(string host, string posId, string maquina)
+        /// <summary>
+        /// Metodo encargado para obtener informacion de los deliveries o cargas iniciales(Albaranes) a los tanques
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="posId"></param>
+        /// <param name="maquina"></param>
+        /// <returns></returns>
+        public IEnumerable<TankDeliveryInfo> GetDeliveriesTanksGaugeDOMS(string host, string posId, string maquina)
         {
             try
             {
@@ -145,8 +157,16 @@ namespace DOMSLibrary
                 _DOMSSemaphore.Release();
             }
         }
-
-        public IList<FuellingPointData> ObtenerFuellingPoinsData(string host, string posId, string maquina)
+        
+        /// <summary>
+        /// Metodo encargado para extraer informacion de los surtidores calculados en el controlador,
+        /// tratarlo en el controller y mandarlo para realizar un json final.
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="posId"></param>
+        /// <param name="maquina"></param>
+        /// <returns></returns>
+        public IList<FuellingPointData> GetFuellingPoinsDataDOMS(string host, string posId, string maquina)
         {
             try
             {
@@ -175,7 +195,7 @@ namespace DOMSLibrary
                            GradeID = gradeTotal.GradeId,
                            GradeTotal = gcGrade.Item[gradeTotal.GradeId].Text,
                            GradeVolTotal = Convert.ToDecimal(gradeTotal.GradeVolTotal)
-                    });
+                        });
                     }
                 }
                 return ret;
@@ -197,9 +217,8 @@ namespace DOMSLibrary
             try
             {
                 _DOMSSemaphore.Wait();
-
                 // BLOQUE CRITICO
-                DOMSConnection._performanceConectionDOMS();
+                ConnectToDOMS();
             }
             finally
             {

@@ -21,33 +21,30 @@ namespace DOMSLibrary
         {
             TankGaugeDataHistoryBE objtgSonda = null;
             List<TankGaugeDataHistoryBE> LstObjtgSonda = null;
-            TankGaugeDataCollection objddcTanke = null;
-            TankGaugeCollection tgcSondaa = null;
+            //TankGaugeDataCollection objddcTanke = null;
+            //TankGaugeCollection tgcSondaa = null;
             string json = "";
             string strFechaIso = "";
 
             try
             {
                 /*
-                    * MX- Se utiliza para obtener los parametros del TankID con el TankGaudeID de la configuracio.
+                * MX- Se utiliza para obtener los parametros del TankID con el TankGaudeID de la configuracio.
                 */
                 string[] objectItemTanks = strTanksID.Split('|');
                 Thread.Sleep(5000);
-                var tank_Info_Data = Controller.ObtenerTanksGaugeData(pstrHost, pbytPosId,pstrMaquina);
+                var tank_Info_Data = Controller.GetTanksGaugeDataDOMS(pstrHost, pbytPosId,pstrMaquina);
 
-                fc0.EventsDisabled = false;
-                tgcSondaa = (TankGaugeCollection)ifc0.TankGauges;
-
-                if (tgcSondaa.Count > 0)
-                {
+                //if (tgcSondaa.Count > 0)
+                //{
                     LstObjtgSonda = new List<TankGaugeDataHistoryBE>();
                     strFechaIso = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                    foreach (TankGauge tgesondaa2 in tgcSondaa)
+                    foreach (TankGauge tgesondaa2 in tank_Info_Data)
                     {
 
                         objtgSonda = new TankGaugeDataHistoryBE();
-                        objddcTanke = tgesondaa2.DataCollection;
+                        //objddcTanke = tgesondaa2.DataCollection;
                         objtgSonda.Ncompany = pscompany;
                         objtgSonda.StoreID = pstoreID;
                         objtgSonda.Date = strFechaIso;
@@ -110,11 +107,11 @@ namespace DOMSLibrary
                         LstObjtgSonda.Add(objtgSonda);
                     }
                     json = TransformJson(LstObjtgSonda);
-                }
-                else
+                //}
+                /*else
                 {
                     json = "";
-                }
+                }*/
 
             return json;
             }
@@ -154,7 +151,7 @@ namespace DOMSLibrary
                 }
                 ctdParametro = new ClrTankDeliveryDataParms();
 
-                var tankDeliveryInfo = Controller.ObtenerDeliveriesTanksGauge(pstrHost, pbytPosId, pstrMaquina);
+                var tankDeliveryInfo = Controller.GetDeliveriesTanksGaugeDOMS(pstrHost, pbytPosId, pstrMaquina);
 
                 if (objtgcTankeDel.Count > 0)
                 {
@@ -264,7 +261,6 @@ namespace DOMSLibrary
 
         public string fnObtenerPuntoCombustible(string pstrHost, string pbytPosId, string pscompany, string pstoreID, string psUserID, string pstrMaquina, Forecourt fc2, IFCConfig ifc2)
         {
-
             TankGaugeFuellingBE objFuelling = null;
             List<TankGaugeFuellingBE> lsttgfFuelling = new List<TankGaugeFuellingBE>();
             string json = "";
@@ -272,38 +268,29 @@ namespace DOMSLibrary
 
             try
             {
+                Thread.Sleep(5000);
+                strFechaIso= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                var dataFuellingPoint = Controller.GetFuellingPoinsDataDOMS(pstrHost, pbytPosId, pstrMaquina);
 
-                    Thread.Sleep(5000);
-                    GradeCollection gcGrade = null;
-                    FuellingPointTotals fptPunto = null;
-
-                    //fc2.EventsDisabled = false;
-                    //gcGrade = ifc2.Grades;
-                    strFechaIso= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-
-                    //foreach (FuellingPoint fp in ifc2.FuellingPoints)
-                    //{
-                        //fptPunto = fp.Totals[FuellingPointsTotalTypes.GT_FUELLING_POINT_TOTAL];
-                        foreach (GradeTotal grtGrado in fptPunto.GradeTotals)
-                        {
-                            objFuelling = new TankGaugeFuellingBE();
-                            objFuelling.Ncompany = pscompany;
-                            objFuelling.StoreID = pstoreID;
-                            objFuelling.Date = strFechaIso;
-                            objFuelling.UserID = psUserID;
-                            objFuelling.FuellingPointID = fp.Id;
-                            objFuelling.GrandVolTotal = Convert.ToDecimal(fptPunto.GrandVolTotal);
-                            objFuelling.GrandMoneyTotal = Convert.ToDecimal(fptPunto.GrandMoneyTotal);
-                            objFuelling.GradeID = grtGrado.GradeId;
-                            objFuelling.GradeTotal = gcGrade.Item[grtGrado.GradeId].Text;
-                            objFuelling.GradeVolTotal = Convert.ToDecimal(grtGrado.GradeVolTotal);
-                            lsttgfFuelling.Add(objFuelling);
-                        }
-                    //}
-                    json = TransformJson(lsttgfFuelling);
-               
+                foreach (FuellingPointData grtGrado in dataFuellingPoint)
+                {
+                    objFuelling = new TankGaugeFuellingBE()
+                    {
+                        Ncompany = pscompany,
+                        StoreID = pstoreID,
+                        Date = strFechaIso,
+                        UserID = psUserID,
+                        FuellingPointID = grtGrado.FuellingPointID,
+                        GrandVolTotal = grtGrado.GrandVolTotal,
+                        GrandMoneyTotal = grtGrado.GrandMoneyTotal,
+                        GradeID = grtGrado.GradeID,
+                        GradeTotal = grtGrado.GradeTotal,
+                        GradeVolTotal = grtGrado.GradeVolTotal
+                    };
+                    lsttgfFuelling.Add(objFuelling);
+                }
+                json = TransformJson(lsttgfFuelling);
                 return json;
-
             }
             catch (Exception ex)
             {
