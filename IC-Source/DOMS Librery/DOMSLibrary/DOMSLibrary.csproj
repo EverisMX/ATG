@@ -75,6 +75,7 @@
     <Compile Include="BE\TankGaugeFuellingBE.cs" />
     <Compile Include="ConsumptionResources.cs" />
     <Compile Include="Controllers\DOMSController.cs" />
+    <Compile Include="Controllers\Logger.cs" />
     <Compile Include="DOMSAlarmsProbes.cs" />
     <Compile Include="DOMSTankGauge.cs" />
     <Compile Include="Helpers\FuellingPointsTotalTypes.cs" />

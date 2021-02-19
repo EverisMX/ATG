@@ -61,12 +61,16 @@ namespace DOMSLibrary
             try
             {
                 _DOMSSemaphore.Wait();
+                Logger.Log("Entrada", new { host, posId, maquina });
                 var ret = new List<TankGauge>();
                 // BLOQUE CRITICO
                 _connectToDOMS(host, posId, maquina);
-
+                Logger.Log("Llamada Forecourt.EventsDisabled");
                 Forecourt.EventsDisabled = false;
+                Logger.Log("Llamada IFCConfig.TankGauges");
                 TankGaugeCollection tgcSondaa = IFCConfig.TankGauges;
+                Logger.Log("Llamada IFCConfig.TankGauges con exito", tgcSondaa);
+
                 if (tgcSondaa.Count > 0)
                 {
                     foreach (PSS_Forecourt_Lib.TankGauge tankInfo in tgcSondaa)
@@ -76,8 +80,11 @@ namespace DOMSLibrary
                             Id = Convert.ToInt32(tankInfo.Id),
                             DataCollection = new List<TankGaugeData>(tankInfo.DataCollection.Count)
                         };
+                        Logger.Log("Llamada TankGaugeDataCollection");
+                        TankGaugeDataCollection tankGaugeDataCollection = tankInfo.DataCollection;
+                        Logger.Log("Llamada TankGaugeDataCollection con exito.", tankGaugeDataCollection);
 
-                        foreach (PSS_Forecourt_Lib.TankGaugeData tgdData in tankInfo.DataCollection)
+                        foreach (PSS_Forecourt_Lib.TankGaugeData tgdData in tankGaugeDataCollection)
                         {
                             tank.DataCollection.Add(new TankGaugeData
                             {
@@ -88,11 +95,12 @@ namespace DOMSLibrary
                         ret.Add(tank);
                     }
                 }
+                Logger.Log("Salida", ret);
                 return ret;
             }
             catch (Exception e)
             {
-                // LOG???
+                Logger.LogException(e);
                 throw;
             }
             finally
@@ -114,16 +122,21 @@ namespace DOMSLibrary
             try
             {
                 _DOMSSemaphore.Wait();
+                Logger.Log("Entrada", new { host, posId, maquina });
                 var ret = new List<TankDeliveryInfo>();
                 _connectToDOMS(host, posId, maquina);
                 byte bytPosID = Convert.ToByte(posId);
 
+                Logger.Log("Llamada Forecourt.EventsDisabled");
                 Forecourt.EventsDisabled = false;
 
+                Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus");
                 Forecourt.GetSiteDeliveryStatus(out byte bitEstadoFlag, out byte bitDeliverySeq, out TankGaugeCollection objtgcTankeDel);
+                Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus con exito", new { bitEstadoFlag, bitDeliverySeq, objtgcTankeDel });
 
                 if (bitEstadoFlag == 0) // indica que no se obtuvo informe report deilverys.
                 {
+                    Logger.Log("Salida con exito");
                     return new List<TankDeliveryInfo>();
                 }
 
@@ -133,7 +146,10 @@ namespace DOMSLibrary
                     {
                         Id = Convert.ToInt32(tankInfo.Id)
                     };
+
+                    Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus");
                     DeliveryDataCollection ddcDelivery = tankInfo.GetDeliveryData(bytPosID, out byte byNroReport);
+                    Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus con exito.", new { ddcDelivery, byNroReport });
 
                     foreach (DeliveryData tgdData in ddcDelivery)
                     {
@@ -153,11 +169,17 @@ namespace DOMSLibrary
                     DeliveryReportSeqNo = bitDeliverySeq,
                     PosId = bytPosID
                 };
+
+                Logger.Log("Llamada Forecourt.ClrTankDeliveryData", ctdParametro);
                 Forecourt.ClrTankDeliveryData(ctdParametro);
+                Logger.Log("Llamada Forecourt.ClrTankDeliveryData con exito");
+
+                Logger.Log("Salida", ret);
                 return ret;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.LogException(e);
                 throw;
             }
             finally
@@ -180,21 +202,27 @@ namespace DOMSLibrary
             try
             {
                 _DOMSSemaphore.Wait();
+                Logger.Log("Entrada", new { host, posId, maquina });
                 var ret = new List<FuellingPointData>();
                 // BLOQUE CRITICO
                 _connectToDOMS(host, posId, maquina);
 
-                GradeCollection gcGrade = null;
-                FuellingPointTotals fptPunto = null;
+                Logger.Log("Llamada Forecourt.EventsDisabled");
                 Forecourt.EventsDisabled = false;
-                gcGrade = IFCConfig.Grades;
+
+                Logger.Log("Llamada IFCConfig.FuellingPoints");
+                FuellingPointCollection fpCollection = IFCConfig.FuellingPoints;
+                Logger.Log("Llamada IFCConfig.FuellingPoints con exito.", fpCollection);
 
                 // MX- Se coloca la Interfaz de la invocacion del Fuelling para el Objeto.
-                foreach (FuellingPoint fuellingPoint in IFCConfig.FuellingPoints)
+                foreach (FuellingPoint fuellingPoint in fpCollection)
                 {
-                    fptPunto = fuellingPoint.Totals[FpTotalTypes.GT_FUELLING_POINT_TOTAL];
+                    FuellingPointTotals fptPunto = fuellingPoint.Totals[FpTotalTypes.GT_FUELLING_POINT_TOTAL];
 
-                    foreach (GradeTotal gradeTotal in fptPunto.GradeTotals)
+                    Logger.Log("Llamada GradeTotals");
+                    GradeTotalCollection gradeTotals = fptPunto.GradeTotals;
+                    Logger.Log("Llamada GradeTotals con exito.", gradeTotals);
+                    foreach (GradeTotal gradeTotal in gradeTotals)
                     {
                         ret.Add(new FuellingPointData
                         {
@@ -202,15 +230,18 @@ namespace DOMSLibrary
                             GrandVolTotal = Convert.ToDecimal(fptPunto.GrandVolTotal),
                             GrandMoneyTotal = Convert.ToDecimal(fptPunto.GrandMoneyTotal),
                             GradeID = gradeTotal.GradeId,
-                            GradeTotal = gcGrade.Item[gradeTotal.GradeId].Text,
+                            GradeTotal = ((GradeCollection)null).Item[gradeTotal.GradeId].Text,
                             GradeVolTotal = Convert.ToDecimal(gradeTotal.GradeVolTotal)
                         });
                     }
                 }
+
+                Logger.Log("Salida", ret);
                 return ret;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.LogException(e);
                 throw;
             }
             finally
@@ -244,6 +275,7 @@ namespace DOMSLibrary
             Forecourt.PosId = Convert.ToByte(bytPosID);
             Forecourt.HostName = strHost;
             string strEstadoSonda = "Initialize";
+            Logger.Log("Llamada  Forecourt.Initialize");
             Forecourt.Initialize();
             strEstadoSonda = "Logon";
 
@@ -257,12 +289,15 @@ namespace DOMSLibrary
                 {
                     flpParametro = new FcLogonParms();
                     flpParametro.EnableFcEvent(FcEvents.xxxxCfgChanged);
+                    Logger.Log("Llamada  Forecourt.FcLogon2", new { logon, flpParametro });
                     Forecourt.FcLogon2(logon, flpParametro);
+                    Logger.Log("Llamada  Forecourt.FcLogon2 con exito");
                     auxLogon = true;
 
                 }
-                catch
+                catch (Exception e)
                 {
+                    Logger.LogException(e);
                     if (cnt == 3)
                         throw new InvalidOperationException("Intento de Conexión 3 veces fallida" + strEstadoSonda);
                     Thread.Sleep(1000); // Pausa de 1 segundo para reintentar el Logon
