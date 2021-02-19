@@ -36,7 +36,7 @@ namespace DOMSLibrary
                         lstAlarmTank = new List<AlarmTank>();
                         strFechaIso = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                        foreach (TankGauge tgesondaa2 in tgcSondaa)
+                        foreach (PSS_Forecourt_Lib.TankGauge tgesondaa2 in tgcSondaa)
                         {
 
                             tgesondaa2.GetStatus(out tmsMainState, out bytStatus, out intAlarmStatus);

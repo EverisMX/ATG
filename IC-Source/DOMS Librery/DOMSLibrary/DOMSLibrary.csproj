@@ -86,9 +86,9 @@
     <Compile Include="Models\FuellingPointData.cs" />
     <Compile Include="Models\GradesFuelling.cs" />
     <Compile Include="Models\GradesFuellingTotals.cs" />
-    <Compile Include="Models\TankDataCollection.cs" />
     <Compile Include="Models\TankDeliveryInfo.cs" />
-    <Compile Include="Models\TankInfo.cs" />
+    <Compile Include="Models\TankGauge.cs" />
+    <Compile Include="Models\TankGaugeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utility\Generic.cs" />
   </ItemGroup>

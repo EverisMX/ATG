@@ -1,13 +1,14 @@
 ﻿using PSS_Forecourt_Lib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DOMSLibrary
 {
+    /// <summary>
+    /// Clase que controla el acceso a DOMS.
+    /// Singleton, una unica instancia y un unico hilo conecta con DOMS.
+    /// </summary>
     internal class DOMSController
     {
         #region Singleton
@@ -16,16 +17,25 @@ namespace DOMSLibrary
         protected DOMSController()
         {
             Forecourt = new Forecourt();
-            ConnectToDOMS();
+            IFCConfig = (IFCConfig)Forecourt;
         }
 
         public static DOMSController GetInstance
         {
             get
             {
-                if (_instance == null)
-                    _instance = new DOMSController();
-
+                _DOMSSemaphore.Wait();
+                try
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new DOMSController();
+                    }
+                }
+                finally
+                {
+                    _DOMSSemaphore.Release();
+                }
                 return _instance;
             }
         }
@@ -34,10 +44,10 @@ namespace DOMSLibrary
         /// <summary>
         /// Semaforo  para acceso a doms
         /// </summary>
-        private SemaphoreSlim _DOMSSemaphore = new SemaphoreSlim(0, 1);
+        private readonly static SemaphoreSlim _DOMSSemaphore = new SemaphoreSlim(0, 1);
 
-        private Forecourt Forecourt = null;
-        private IFCConfig IFCConfig = null;
+        private readonly Forecourt Forecourt = null;
+        private readonly IFCConfig IFCConfig = null;
 
         /// <summary>
         /// Metodo encargado para obtener la informacion de los tanques del varillaje.
@@ -46,30 +56,30 @@ namespace DOMSLibrary
         /// <param name="posId"></param>
         /// <param name="maquina"></param>
         /// <returns IEnumerable<TankInfo>></returns>
-        public IEnumerable<TankInfo> GetTanksGaugeDataDOMS(string host, string posId, string maquina)
+        public IList<TankGauge> GetTanksGaugeDataDOMS(string host, string posId, string maquina)
         {
             try
             {
                 _DOMSSemaphore.Wait();
-                var ret = new List<TankInfo>();
+                var ret = new List<TankGauge>();
                 // BLOQUE CRITICO
-                ConnectToDOMS();
+                _connectToDOMS(host, posId, maquina);
 
                 Forecourt.EventsDisabled = false;
                 TankGaugeCollection tgcSondaa = IFCConfig.TankGauges;
-                if(tgcSondaa.Count > 0)
+                if (tgcSondaa.Count > 0)
                 {
-                    foreach (TankGauge tankInfo in tgcSondaa)
+                    foreach (PSS_Forecourt_Lib.TankGauge tankInfo in tgcSondaa)
                     {
-                        var tank = new TankInfo
+                        var tank = new TankGauge
                         {
                             Id = Convert.ToInt32(tankInfo.Id),
-                            DataCollection = new List<TankDataCollection>(tankInfo.DataCollection.Count)
+                            DataCollection = new List<TankGaugeData>(tankInfo.DataCollection.Count)
                         };
 
-                        foreach (TankGaugeData tgdData in tankInfo.DataCollection)
+                        foreach (PSS_Forecourt_Lib.TankGaugeData tgdData in tankInfo.DataCollection)
                         {
-                            tank.DataCollection.Add(new TankDataCollection
+                            tank.DataCollection.Add(new TankGaugeData
                             {
                                 Data = tgdData.Data,
                                 TankDataId = (TankDataId)tgdData.TankDataId
@@ -99,38 +109,31 @@ namespace DOMSLibrary
         /// <param name="posId"></param>
         /// <param name="maquina"></param>
         /// <returns></returns>
-        public IEnumerable<TankDeliveryInfo> GetDeliveriesTanksGaugeDOMS(string host, string posId, string maquina)
+        public IList<TankDeliveryInfo> GetDeliveriesTanksGaugeDOMS(string host, string posId, string maquina)
         {
             try
             {
                 _DOMSSemaphore.Wait();
                 var ret = new List<TankDeliveryInfo>();
-                ConnectToDOMS();
-
-                TankGaugeCollection objtgcTankeDel;
-                DeliveryDataCollection ddcDelivery;
-
-                byte bytPosID;
-                byte bitDeliverySeq;
-                byte bitEstadoFlag;
-                bytPosID = Convert.ToByte(posId);
+                _connectToDOMS(host, posId, maquina);
+                byte bytPosID = Convert.ToByte(posId);
 
                 Forecourt.EventsDisabled = false;
-                Forecourt.GetSiteDeliveryStatus(out bitEstadoFlag, out bitDeliverySeq, out objtgcTankeDel);
+
+                Forecourt.GetSiteDeliveryStatus(out byte bitEstadoFlag, out byte bitDeliverySeq, out TankGaugeCollection objtgcTankeDel);
 
                 if (bitEstadoFlag == 0) // indica que no se obtuvo informe report deilverys.
                 {
                     return new List<TankDeliveryInfo>();
                 }
 
-                foreach (TankGauge tankInfo in objtgcTankeDel)
+                foreach (PSS_Forecourt_Lib.TankGauge tankInfo in objtgcTankeDel)
                 {
                     var tank = new TankDeliveryInfo
                     {
-                        Id = Convert.ToInt32(tankInfo.Id),
-                        DataCollection = new List<TankDataCollection>(tankInfo.DataCollection.Count)
+                        Id = Convert.ToInt32(tankInfo.Id)
                     };
-                    ddcDelivery = tankInfo.GetDeliveryData(bytPosID, out byte byNroReport);
+                    DeliveryDataCollection ddcDelivery = tankInfo.GetDeliveryData(bytPosID, out byte byNroReport);
 
                     foreach (DeliveryData tgdData in ddcDelivery)
                     {
@@ -145,6 +148,12 @@ namespace DOMSLibrary
                     }
                     ret.Add(tank);
                 }
+                ClrTankDeliveryDataParms ctdParametro = new ClrTankDeliveryDataParms
+                {
+                    DeliveryReportSeqNo = bitDeliverySeq,
+                    PosId = bytPosID
+                };
+                Forecourt.ClrTankDeliveryData(ctdParametro);
                 return ret;
             }
             catch (Exception)
@@ -157,7 +166,7 @@ namespace DOMSLibrary
                 _DOMSSemaphore.Release();
             }
         }
-        
+
         /// <summary>
         /// Metodo encargado para extraer informacion de los surtidores calculados en el controlador,
         /// tratarlo en el controller y mandarlo para realizar un json final.
@@ -173,7 +182,7 @@ namespace DOMSLibrary
                 _DOMSSemaphore.Wait();
                 var ret = new List<FuellingPointData>();
                 // BLOQUE CRITICO
-                ConnectToDOMS();
+                _connectToDOMS(host, posId, maquina);
 
                 GradeCollection gcGrade = null;
                 FuellingPointTotals fptPunto = null;
@@ -189,12 +198,12 @@ namespace DOMSLibrary
                     {
                         ret.Add(new FuellingPointData
                         {
-                           FuellingPointID = fuellingPoint.Id,
-                           GrandVolTotal = Convert.ToDecimal(fptPunto.GrandVolTotal),
-                           GrandMoneyTotal = Convert.ToDecimal(fptPunto.GrandMoneyTotal),
-                           GradeID = gradeTotal.GradeId,
-                           GradeTotal = gcGrade.Item[gradeTotal.GradeId].Text,
-                           GradeVolTotal = Convert.ToDecimal(gradeTotal.GradeVolTotal)
+                            FuellingPointID = fuellingPoint.Id,
+                            GrandVolTotal = Convert.ToDecimal(fptPunto.GrandVolTotal),
+                            GrandMoneyTotal = Convert.ToDecimal(fptPunto.GrandMoneyTotal),
+                            GradeID = gradeTotal.GradeId,
+                            GradeTotal = gcGrade.Item[gradeTotal.GradeId].Text,
+                            GradeVolTotal = Convert.ToDecimal(gradeTotal.GradeVolTotal)
                         });
                     }
                 }
@@ -211,21 +220,6 @@ namespace DOMSLibrary
             }
         }
 
-
-        private void ConnectToDOMS()
-        {
-            try
-            {
-                _DOMSSemaphore.Wait();
-                // BLOQUE CRITICO
-                ConnectToDOMS();
-            }
-            finally
-            {
-                _DOMSSemaphore.Release();
-
-            }
-        }
 
         /// <summary>
         /// PRECONDITION: LLAMAR DENTRO DE BLOQUE CRITICO
@@ -243,7 +237,7 @@ namespace DOMSLibrary
         /// <param name="bytPosID"></param>
         /// <param name="idmaquina"></param>
         /// <exception cref="InvalidOperationException">Si no ha podido realizar conexion</exception>
-        private void ConnectToDOMS(string strHost, string bytPosID, string idmaquina)
+        private void _connectToDOMS(string strHost, string bytPosID, string idmaquina)
         {
             string logon = "POS,UNSO_FPSTA_2,APPL_ID=" + idmaquina;
 
