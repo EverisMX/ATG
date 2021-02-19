@@ -1,5 +1,4 @@
-﻿using PSS_Forecourt_Lib;
-using ServicioTPVAgenteLocal.BE;
+﻿using ServicioTPVAgenteLocal.BE;
 using ServicioTPVAgenteLocal.Utility;
 using ServicioTPVAgenteLocal.Utility.Enums;
 using System;
@@ -31,8 +30,7 @@ namespace ServicioTPVAgenteLocal
         string msg = "";
         SysDataTPVCOFO _SysData = new SysDataTPVCOFO();
         enum Unit { B, KB, MB, GB, TB, ER };
-        Forecourt fcPrimary;
-        IFCConfig ifcPrimary;
+        
 
         #region Contructor
         /// <summary>
@@ -71,14 +69,12 @@ namespace ServicioTPVAgenteLocal
         }
 
         /// 
-        public ServiceWorkerTPVCOFO(ServiceConfigTPVCOFO.Library pLib, int iPidxThread, ServiceBatchTPVCOFO pHilobatch, ServiceConfigTPVCOFO.Batch pbatchConfig, Forecourt pfc, IFCConfig pifc)
+        public ServiceWorkerTPVCOFO(ServiceConfigTPVCOFO.Library pLib, int iPidxThread, ServiceBatchTPVCOFO pHilobatch, ServiceConfigTPVCOFO.Batch pbatchConfig)
         {
             idxThread = iPidxThread;
             lib = pLib;
             batchH = pHilobatch;
             batchConfig = pbatchConfig;
-            fcPrimary = pfc;
-            ifcPrimary = pifc;
         }
         /// <summary>
         ///  Constructor asociado al Hilo que controlar el Archivo Log
@@ -748,17 +744,7 @@ namespace ServicioTPVAgenteLocal
                     //ILION- Se agrega la lista de tanques
                     if (lib.BatchName == "Batch_TankGauge" || lib.BatchName == "Batch_Deliverys")
                     {
-                        objectItems = objectItems.Concat(new object[] { sTanks, fcPrimary, ifcPrimary }).ToArray();
-                    }
-                    else
-                    {
-                        if (lib.BatchName != "Batch_Performance")
-                            objectItems = objectItems.Concat(new object[] { fcPrimary, ifcPrimary }).ToArray();
-                    }
-
-                    if (fcPrimary == null && lib.BatchName != "Batch_Performance")
-                    {
-                        Generic.fnLogonPSSPOS(objectItems[0].ToString(),objectItems[1].ToString(),out fcPrimary,out ifcPrimary,objectItems[5].ToString());
+                        objectItems = objectItems.Concat(new object[] { sTanks }).ToArray();
                     }
 
                     return myMethod.Invoke(obj, objectItems).ToString();
@@ -767,12 +753,6 @@ namespace ServicioTPVAgenteLocal
             }
             catch (Exception e)
             {
-                if (fcPrimary != null)
-                {
-                    fcPrimary.Disconnect();
-                    fcPrimary = null;
-                    ifcPrimary = null;
-                }
                 if (e.InnerException != null)
                     strError = e.InnerException.ToString();
                 else

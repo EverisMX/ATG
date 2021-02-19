@@ -13,7 +13,7 @@ using System.Diagnostics;
 using ServicioTPVAgenteLocal.Configuration;
 using System.Web.Script.Serialization;
 using System.Threading.Tasks;
-using PSS_Forecourt_Lib;
+
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
@@ -36,10 +36,6 @@ namespace ServicioTPVAgenteLocal
         ServiceConfigTPVCOFO.Batch[] batchConfig = null;
         ServiceConfigTPVCOFO.ServicioWeb objReconexion = null;
         static int intCantBatch = 0;
-        Forecourt fcPrimary;
-        IFCConfig ifcPrimary;
-        Forecourt fcAlarm;
-        IDomsPos idpAlarm;
         private Thread threadTgAlarms;
         string strUserID = "";
         string strStoreID = "";
@@ -92,17 +88,17 @@ namespace ServicioTPVAgenteLocal
                             _multithread = new MultiThread(TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1);
                             CreateMultiThreads();
 
-                            if (_config.ListAlarm != null)
-                            {
-                                ServiceLogTPVCOFO.Instance.WriteLine("***********Inicio de Activación de Alarmas ***********", true);
-                                threadTgAlarms = new Thread(StartTgAlarmsListener);
-                                threadTgAlarms.Start();
-                                ServiceLogTPVCOFO.Instance.WriteLine("***********Fin de Activación de Alarmas ***********", true);
-                            }
-                            else
-                            {
-                                ServiceLogTPVCOFO.Instance.WriteLine("***********No se inicio Activación de Alarmas ***********", true);
-                            }
+                            //if (_config.ListAlarm != null)
+                            //{
+                            //    ServiceLogTPVCOFO.Instance.WriteLine("***********Inicio de Activación de Alarmas ***********", true);
+                            //    threadTgAlarms = new Thread(StartTgAlarmsListener);
+                            //    threadTgAlarms.Start();
+                            //    ServiceLogTPVCOFO.Instance.WriteLine("***********Fin de Activación de Alarmas ***********", true);
+                            //}
+                            //else
+                            //{
+                            //    ServiceLogTPVCOFO.Instance.WriteLine("***********No se inicio Activación de Alarmas ***********", true);
+                            //}
 
                         }
                         else
@@ -271,15 +267,9 @@ namespace ServicioTPVAgenteLocal
                     }
                 }
 
-                if (fcPrimary != null)
-                {
-                    ServiceLogTPVCOFO.Instance.WriteLine("Liberación de Conexión PSSPOS.", true);
-                    fcPrimary.Disconnect();
-                    fcPrimary = null;
-                    ifcPrimary = null;
-                }
+                
 
-                fnCleanAlarm();
+                //fnCleanAlarm();
 
                 ServiceLogTPVCOFO.Instance.GrabarLog();
                 _config = null;
@@ -334,17 +324,17 @@ namespace ServicioTPVAgenteLocal
 
                         _multithread = new MultiThread(TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1);
                         CreateMultiThreads();
-                        if (_config.ListAlarm != null)
-                        {
-                            ServiceLogTPVCOFO.Instance.WriteLine("***********Inicio de Activación de Alarmas ***********", true);
-                            threadTgAlarms = new Thread(StartTgAlarmsListener);
-                            threadTgAlarms.Start();
-                            ServiceLogTPVCOFO.Instance.WriteLine("***********Fin de Activación de Alarmas ***********", true);
-                        }
-                        else
-                        {
-                            ServiceLogTPVCOFO.Instance.WriteLine("***********No se inicio Activación de Alarmas ***********", true);
-                        }
+                        //if (_config.ListAlarm != null)
+                        //{
+                        //    ServiceLogTPVCOFO.Instance.WriteLine("***********Inicio de Activación de Alarmas ***********", true);
+                        //    threadTgAlarms = new Thread(StartTgAlarmsListener);
+                        //    threadTgAlarms.Start();
+                        //    ServiceLogTPVCOFO.Instance.WriteLine("***********Fin de Activación de Alarmas ***********", true);
+                        //}
+                        //else
+                        //{
+                        //    ServiceLogTPVCOFO.Instance.WriteLine("***********No se inicio Activación de Alarmas ***********", true);
+                        //}
                         ServiceLogTPVCOFO.Instance.WriteLine("Fin Multihilos.");
                     }
                 }
@@ -592,17 +582,15 @@ namespace ServicioTPVAgenteLocal
                 // ILION- Se comprueba que la Librery este inactiva. **
                 if (TOTAL_LIBRARY > 0)
                 {
-                    bool blnLogueoDoms = false;
                     //bool flagFuelling = false; // ILION- Control para el Fueling.
                     for (int i = 0; i < TOTAL_LIBRARY; i++)
                     {
                         if (_config.ListLibrary != null)
                         {
-                            if (_config.ListLibrary[i].BatchName != "Batch_Performance" && !blnLogueoDoms)
+                            if (_config.ListLibrary[i].BatchName != "Batch_Performance")
                             {
                                 string[] stringItems = _config.ListLibrary[i].Parameters.Split('|');
                                 object[] objectItems = (object[])stringItems;
-                                blnLogueoDoms = Generic.fnLogonPSSPOS(objectItems[0].ToString(), objectItems[1].ToString(), out fcPrimary, out ifcPrimary, objectItems[5].ToString());
                             }
                             if (_config.ListLibrary[i].BitSaveResponse)
                             {
@@ -617,7 +605,7 @@ namespace ServicioTPVAgenteLocal
                                         //TimeMinuteBatchCycle = _config.ListLibrary[i].TimeMinuteBatchCycle
                                     };
                                     batch[idxBatch] = new ServiceBatchTPVCOFO();
-                                    worker[i + (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)] = new ServiceWorkerTPVCOFO(_config.ListLibrary[i], i, batch[idxBatch], batchConfig[idxBatch], fcPrimary, ifcPrimary);
+                                    worker[i + (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)] = new ServiceWorkerTPVCOFO(_config.ListLibrary[i], i, batch[idxBatch], batchConfig[idxBatch]);
                                     //flagFuelling = true;
                                 /*}
                                 else
@@ -627,7 +615,7 @@ namespace ServicioTPVAgenteLocal
                                 }*/
                             }
                             else
-                                worker[i + (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)] = new ServiceWorkerTPVCOFO(_config.ListLibrary[i], i, null, null, fcPrimary, ifcPrimary);
+                                worker[i + (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)] = new ServiceWorkerTPVCOFO(_config.ListLibrary[i], i, null, null);
 
                             //if (flagFuelling)
                             //{
@@ -649,13 +637,6 @@ namespace ServicioTPVAgenteLocal
             }
             catch (Exception e)
             {
-                if (fcPrimary != null)
-                {
-                    fcPrimary.Disconnect();
-                    fcPrimary = null;
-                    ifcPrimary = null;
-                }
-
                 if (e.InnerException != null)
                     ServiceLogTPVCOFO.Instance.WriteLine("Error in Creación de Thread " + e.InnerException.Message);
                 else
@@ -1436,171 +1417,172 @@ namespace ServicioTPVAgenteLocal
             return strResultado;
         }
 
-        private void FC_TankGaugeStatusChanged(TankGauge Tg, TgMainStates MainState, byte Status, int AlarmStatus)
-        {
-            #region Vars
-            string strAlarmTxt;
-            string strBatchPath;
-            string strTimeStamp;
-            string strJsonTgAlarm;
-            string strResultado = "";
-            ResponseApi objResultado = null;
-            string[] arrAlarm = null;
-            string strCodeAlarm = "";
-            string strTextAlarm = "";
-            string strTrace = string.Empty;
-            #endregion  //Vars
+        #region Alarms
+        //private void FC_TankGaugeStatusChanged(TankGauge Tg, TgMainStates MainState, byte Status, int AlarmStatus)
+        //{
+        //    #region Vars
+        //    string strAlarmTxt;
+        //    string strBatchPath;
+        //    string strTimeStamp;
+        //    string strJsonTgAlarm;
+        //    string strResultado = "";
+        //    ResponseApi objResultado = null;
+        //    string[] arrAlarm = null;
+        //    string strCodeAlarm = "";
+        //    string strTextAlarm = "";
+        //    string strTrace = string.Empty;
+        //    #endregion  //Vars
 
-            try
-            {
+        //    try
+        //    {
 
-                //Guardar timestamp
-                ServiceLogTPVCOFO.Instance.WriteLine("Inicio Evento FC_TankGaugeStatusChanged: Realizada desde DOMS - Servicio Windows ", true);
-                strTrace = "Paso Princiapl";
-                if (MainState == TgMainStates.TGMS_ALARM)
-                {
-                    strTrace = "Paso de Alarmas";
-                    strAlarmTxt = GetAlarmText(idpAlarm, Tg.Id);
-                    if (!string.IsNullOrEmpty(strAlarmTxt))
-                    {
-                        strTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        arrAlarm = strAlarmTxt.Split(',');
-                        if (arrAlarm != null)
-                        {
-                            strCodeAlarm = arrAlarm[0].Trim();
-                            strTextAlarm = arrAlarm[1].Trim();
-                            //Localizar la ruta del archivo batch
-                            strBatchPath = Assembly.GetExecutingAssembly().Location;
-                            strBatchPath = strBatchPath.Substring(0, strBatchPath.IndexOf("\\"));
-                            strBatchPath += @"\CETEL\ServiceTPVCOFO_Files\BatchPendientes\" + strNameFile + ".log";
-                            //strJsonTgAlarm = JsonConverter
+        //        //Guardar timestamp
+        //        ServiceLogTPVCOFO.Instance.WriteLine("Inicio Evento FC_TankGaugeStatusChanged: Realizada desde DOMS - Servicio Windows ", true);
+        //        strTrace = "Paso Princiapl";
+        //        if (MainState == TgMainStates.TGMS_ALARM)
+        //        {
+        //            strTrace = "Paso de Alarmas";
+        //            strAlarmTxt = GetAlarmText(idpAlarm, Tg.Id);
+        //            if (!string.IsNullOrEmpty(strAlarmTxt))
+        //            {
+        //                strTimeStamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        //                arrAlarm = strAlarmTxt.Split(',');
+        //                if (arrAlarm != null)
+        //                {
+        //                    strCodeAlarm = arrAlarm[0].Trim();
+        //                    strTextAlarm = arrAlarm[1].Trim();
+        //                    //Localizar la ruta del archivo batch
+        //                    strBatchPath = Assembly.GetExecutingAssembly().Location;
+        //                    strBatchPath = strBatchPath.Substring(0, strBatchPath.IndexOf("\\"));
+        //                    strBatchPath += @"\CETEL\ServiceTPVCOFO_Files\BatchPendientes\" + strNameFile + ".log";
+        //                    //strJsonTgAlarm = JsonConverter
 
-                            //Comprobar si no existe el archivo batch y crearlo
-                            if (!File.Exists(strBatchPath))
-                            {
-                                File.Create(strBatchPath);
-                            }
-                            strJsonTgAlarm = "{\"NCOMPANY\":\"" + strCodEmpresa + "\",\"STOREID\":\"" + strStoreID + "\",\"DATE\":\"" + strTimeStamp + "\",\"USERID\":\"" + strUserID + "\",\"TGID\":\"" + Tg.Id + "\",\"CODESTATE\":\"" + Status + "\",\"TYPEALARM\":\"" + AlarmStatus + "\",\"CODEALARM\":\"" + strCodeAlarm + "\",\"TEXTALARM\":\"" + strTextAlarm + "\"}";
+        //                    //Comprobar si no existe el archivo batch y crearlo
+        //                    if (!File.Exists(strBatchPath))
+        //                    {
+        //                        File.Create(strBatchPath);
+        //                    }
+        //                    strJsonTgAlarm = "{\"NCOMPANY\":\"" + strCodEmpresa + "\",\"STOREID\":\"" + strStoreID + "\",\"DATE\":\"" + strTimeStamp + "\",\"USERID\":\"" + strUserID + "\",\"TGID\":\"" + Tg.Id + "\",\"CODESTATE\":\"" + Status + "\",\"TYPEALARM\":\"" + AlarmStatus + "\",\"CODEALARM\":\"" + strCodeAlarm + "\",\"TEXTALARM\":\"" + strTextAlarm + "\"}";
 
-                            //strJsonTgAlarm = strJsonTgAlarm.Remove(strJsonTgAlarm.Length - 1, 1);
-                            if (strUrlServidor.Trim().Length > 0)
-                            {
-                                //strUrlServidor = objServicioWeb.EndPoint;
+        //                    //strJsonTgAlarm = strJsonTgAlarm.Remove(strJsonTgAlarm.Length - 1, 1);
+        //                    if (strUrlServidor.Trim().Length > 0)
+        //                    {
+        //                        //strUrlServidor = objServicioWeb.EndPoint;
 
-                                ServiceLogTPVCOFO.Instance.WriteLine("Inicio Web Service insertAlarmTankGauge: Realizada desde Servicio Windows.", true);
-                                strResultado = insertAlarmTankGauge(strUrlServidor, strPathApi, "{\"listTankGaugeAlarmsHistory\":[" + strJsonTgAlarm + "]}");
+        //                        ServiceLogTPVCOFO.Instance.WriteLine("Inicio Web Service insertAlarmTankGauge: Realizada desde Servicio Windows.", true);
+        //                        strResultado = insertAlarmTankGauge(strUrlServidor, strPathApi, "{\"listTankGaugeAlarmsHistory\":[" + strJsonTgAlarm + "]}");
 
-                                if (!string.IsNullOrEmpty(strResultado))
-                                {
-                                    objResultado = JsonConvert.DeserializeObject<ResponseApi>(strResultado);
+        //                        if (!string.IsNullOrEmpty(strResultado))
+        //                        {
+        //                            objResultado = JsonConvert.DeserializeObject<ResponseApi>(strResultado);
 
-                                    if (objResultado.Status == 200)
-                                    {
-                                        ServiceLogTPVCOFO.Instance.WriteLine("Mensaje de Servicio: " + objResultado.Message, true);
-                                        // Generic.DeleteTempFiles("BatchPendientes", strNameFile + "*.log", 0);
+        //                            if (objResultado.Status == 200)
+        //                            {
+        //                                ServiceLogTPVCOFO.Instance.WriteLine("Mensaje de Servicio: " + objResultado.Message, true);
+        //                                // Generic.DeleteTempFiles("BatchPendientes", strNameFile + "*.log", 0);
 
-                                    }
-                                    else
-                                    {
-                                        strJsonTgAlarm = strJsonTgAlarm.Trim() + ",";
-                                        File.AppendAllLines(strBatchPath, new string[] { strJsonTgAlarm }, Encoding.ASCII);
-                                        ServiceLogTPVCOFO.Instance.WriteLine("Mensaje de Servicio:" + objResultado.Message, true);
-                                    }
-                                    ServiceLogTPVCOFO.Instance.WriteLine("Fin Web Service insertAlarmTankGauge: Realizada desde Servicio Windows.", true);
-                                }
-                                else
-                                {
-                                    strJsonTgAlarm = strJsonTgAlarm.Trim() + ",";
-                                    File.AppendAllLines(strBatchPath, new string[] { strJsonTgAlarm }, Encoding.ASCII);
-                                    ServiceLogTPVCOFO.Instance.WriteLine("Ha ocurrido un Error al Conectarse al Servicio Web.", true);
-                                }
-                            }
-                            else
-                            {
-                                strJsonTgAlarm = strJsonTgAlarm.Trim() + ",";
-                                File.AppendAllLines(strBatchPath, new string[] { strJsonTgAlarm }, Encoding.ASCII);
-                                ServiceLogTPVCOFO.Instance.WriteLine("No se encontro configuración para Servicio Web (Alarmas).", true);
-                            }
+        //                            }
+        //                            else
+        //                            {
+        //                                strJsonTgAlarm = strJsonTgAlarm.Trim() + ",";
+        //                                File.AppendAllLines(strBatchPath, new string[] { strJsonTgAlarm }, Encoding.ASCII);
+        //                                ServiceLogTPVCOFO.Instance.WriteLine("Mensaje de Servicio:" + objResultado.Message, true);
+        //                            }
+        //                            ServiceLogTPVCOFO.Instance.WriteLine("Fin Web Service insertAlarmTankGauge: Realizada desde Servicio Windows.", true);
+        //                        }
+        //                        else
+        //                        {
+        //                            strJsonTgAlarm = strJsonTgAlarm.Trim() + ",";
+        //                            File.AppendAllLines(strBatchPath, new string[] { strJsonTgAlarm }, Encoding.ASCII);
+        //                            ServiceLogTPVCOFO.Instance.WriteLine("Ha ocurrido un Error al Conectarse al Servicio Web.", true);
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        strJsonTgAlarm = strJsonTgAlarm.Trim() + ",";
+        //                        File.AppendAllLines(strBatchPath, new string[] { strJsonTgAlarm }, Encoding.ASCII);
+        //                        ServiceLogTPVCOFO.Instance.WriteLine("No se encontro configuración para Servicio Web (Alarmas).", true);
+        //                    }
 
-                        }
-                    }
-                }
-                else
-                {
-                    ServiceLogTPVCOFO.Instance.WriteLine("No se ncontraron alarmas adheridas a este evento. tgID: "+ Tg.Id+" - estado: "+MainState, true);
-                }
-                ServiceLogTPVCOFO.Instance.WriteLine("Fin Evento FC_TankGaugeStatusChanged: Realizada desde DOMS - Servicio Windows ", true);
-                ServiceLogTPVCOFO.Instance.GrabarLog();
-            }
-            catch (Exception ex)
-            {
-                ServiceLogTPVCOFO.Instance.WriteLine("Error FC_TankGaugeStatusChanged: "+ ex.Message + ex.StackTrace, true);
-                ServiceLogTPVCOFO.Instance.GrabarLog();
-            }
-        }
-        
-        //TODO Comentar
-        private void StartTgAlarmsListener()
-        {
-            #region Vars
-            string strParams;
-            string[] arrParams;
-            string strHostname;
-            string strTpvId;
-            string strApplId;
-            FcLogonParms objParametro;
-            //ServiceConfigTPVCOFO.ServicioWeb[] lstServicioWeb = null;
-            ServiceConfigTPVCOFO.Alarm objAlarm = null;
-            #endregion  //Vars
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ServiceLogTPVCOFO.Instance.WriteLine("No se ncontraron alarmas adheridas a este evento. tgID: "+ Tg.Id+" - estado: "+MainState, true);
+        //        }
+        //        ServiceLogTPVCOFO.Instance.WriteLine("Fin Evento FC_TankGaugeStatusChanged: Realizada desde DOMS - Servicio Windows ", true);
+        //        ServiceLogTPVCOFO.Instance.GrabarLog();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ServiceLogTPVCOFO.Instance.WriteLine("Error FC_TankGaugeStatusChanged: "+ ex.Message + ex.StackTrace, true);
+        //        ServiceLogTPVCOFO.Instance.GrabarLog();
+        //    }
+        //}
 
-            #region Var Initialization
-            fcAlarm = new Forecourt();
-            objParametro = new FcLogonParms();
-            #endregion  //Var Initialization
+        ////TODO Comentar
+        //private void StartTgAlarmsListener()
+        //{
+        //    #region Vars
+        //    string strParams;
+        //    string[] arrParams;
+        //    string strHostname;
+        //    string strTpvId;
+        //    string strApplId;
+        //    FcLogonParms objParametro;
+        //    //ServiceConfigTPVCOFO.ServicioWeb[] lstServicioWeb = null;
+        //    ServiceConfigTPVCOFO.Alarm objAlarm = null;
+        //    #endregion  //Vars
 
-            try
-            {
-                ServiceLogTPVCOFO.Instance.WriteLine("Iniciando hilo a la escucha de alarmas", true);
+        //    #region Var Initialization
+        //    fcAlarm = new Forecourt();
+        //    objParametro = new FcLogonParms();
+        //    #endregion  //Var Initialization
 
-                //Coger los valores de los parametros del la configuración
-                objAlarm = _config.ListAlarm[0];
+        //    try
+        //    {
+        //        ServiceLogTPVCOFO.Instance.WriteLine("Iniciando hilo a la escucha de alarmas", true);
 
-                if (objAlarm != null)
-                {
-                    strParams = objAlarm.Parameters;
-                    strNameFile = objAlarm.BatchName;
-                    strUrlServidor = objAlarm.UrlServidor;
-                    strPathApi = objAlarm.PathApi;
-                    arrParams = strParams.Split('|');
-                    strHostname = arrParams[0];
-                    strTpvId = arrParams[1];
-                    strCodEmpresa = arrParams[2];
-                    strStoreID = arrParams[3];
-                    strUserID = arrParams[4];
-                    strApplId = arrParams[5];
-                    fcAlarm.PosId = Convert.ToByte(strTpvId);
-                    fcAlarm.HostName = strHostname;
+        //        //Coger los valores de los parametros del la configuración
+        //        objAlarm = _config.ListAlarm[0];
 
-                    //Crear parametros de logueo
-                    objParametro.EnableFcEvent(FcEvents.xxxxCfgChanged);
-                    objParametro.EnableFcEvent(FcEvents.TankGaugeStatusChanged);
+        //        if (objAlarm != null)
+        //        {
+        //            strParams = objAlarm.Parameters;
+        //            strNameFile = objAlarm.BatchName;
+        //            strUrlServidor = objAlarm.UrlServidor;
+        //            strPathApi = objAlarm.PathApi;
+        //            arrParams = strParams.Split('|');
+        //            strHostname = arrParams[0];
+        //            strTpvId = arrParams[1];
+        //            strCodEmpresa = arrParams[2];
+        //            strStoreID = arrParams[3];
+        //            strUserID = arrParams[4];
+        //            strApplId = arrParams[5];
+        //            fcAlarm.PosId = Convert.ToByte(strTpvId);
+        //            fcAlarm.HostName = strHostname;
 
-                    //Realizar logueo
-                    fcAlarm.Disconnect();
-                    fcAlarm.Initialize();
-                    idpAlarm = (IDomsPos)fcAlarm;
-                    fcAlarm.FcLogon2("POS,UNSO_TGSTA_2,RI,APPL_ID=" + strApplId, objParametro);
-                    fcAlarm.TankGaugeStatusChanged += FC_TankGaugeStatusChanged;
-                }
-                else
-                    ServiceLogTPVCOFO.Instance.WriteLine("Configuración de Alarmas no encontrada.", true);
+        //            //Crear parametros de logueo
+        //            objParametro.EnableFcEvent(FcEvents.xxxxCfgChanged);
+        //            objParametro.EnableFcEvent(FcEvents.TankGaugeStatusChanged);
 
-            }
-            catch (Exception ex)
-            {
-                ServiceLogTPVCOFO.Instance.WriteLine("Error StartTgAlarmsListener:" + ex.Message, true);
-            }
-        }
+        //            //Realizar logueo
+        //            fcAlarm.Disconnect();
+        //            fcAlarm.Initialize();
+        //            idpAlarm = (IDomsPos)fcAlarm;
+        //            fcAlarm.FcLogon2("POS,UNSO_TGSTA_2,RI,APPL_ID=" + strApplId, objParametro);
+        //            fcAlarm.TankGaugeStatusChanged += FC_TankGaugeStatusChanged;
+        //        }
+        //        else
+        //            ServiceLogTPVCOFO.Instance.WriteLine("Configuración de Alarmas no encontrada.", true);
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ServiceLogTPVCOFO.Instance.WriteLine("Error StartTgAlarmsListener:" + ex.Message, true);
+        //    }
+        //}
 
         /// <summary>
         /// Devuelve un texto descriptivo acerca de la alarma que ha registrado la sonda. Se llama cada vez que se produce un cambio de estado en alguna sonda del DOMS
@@ -1608,62 +1590,62 @@ namespace ServicioTPVAgenteLocal
         /// <param name="_objIdp">Interfaz que se va a utilizar para comunicarse con el DOMS</param>
         /// <param name="_btTgId">Id de la sonda donde se ha producido el cambio de estado</param>
         /// <returns></returns>
-        private string GetAlarmText(IDomsPos _objIdp, byte _btTgId)
-        {
-            #region Vars
-            string strAlarmTxt=string.Empty;
-            Array arrRequest;
-            System.Collections.Generic.List<byte> lstByteRequest;
-            Array arrResponse;
-            BitArray bitsTgSubStates;
-            byte[] bytesAlarmTxt;
-            #endregion //Vars
+        //private string GetAlarmText(IDomsPos _objIdp, byte _btTgId)
+        //{
+        //    #region Vars
+        //    string strAlarmTxt=string.Empty;
+        //    Array arrRequest;
+        //    System.Collections.Generic.List<byte> lstByteRequest;
+        //    Array arrResponse;
+        //    BitArray bitsTgSubStates;
+        //    byte[] bytesAlarmTxt;
+        //    #endregion //Vars
 
-            #region Var Initialization
-            strAlarmTxt = null;
-            lstByteRequest = new List<byte>();
-            #endregion  //Var Initialization
+        //    #region Var Initialization
+        //    strAlarmTxt = null;
+        //    lstByteRequest = new List<byte>();
+        //    #endregion  //Var Initialization
 
-            try
-            {
-                //Añadir campos al array de bytes request
-                lstByteRequest.Add(0x42);//Code
-                lstByteRequest.Add(0x2);//Subc
-                lstByteRequest.Add(_btTgId);//TgId
-                arrRequest = lstByteRequest.ToArray();
+        //    try
+        //    {
+        //        //Añadir campos al array de bytes request
+        //        lstByteRequest.Add(0x42);//Code
+        //        lstByteRequest.Add(0x2);//Subc
+        //        lstByteRequest.Add(_btTgId);//TgId
+        //        arrRequest = lstByteRequest.ToArray();
 
-                //Mandar el mensaje y guardar la respuesta
-                _objIdp.SendDomsPosMessage(arrRequest.Length, ref arrRequest, out arrResponse);
+        //        //Mandar el mensaje y guardar la respuesta
+        //        _objIdp.SendDomsPosMessage(arrRequest.Length, ref arrRequest, out arrResponse);
 
-                //Comprobar que la sonda está en estado de alarma
-                if (arrResponse != null)
-                {
-                    bitsTgSubStates = new BitArray(new byte[] { (byte)arrResponse.GetValue(5) });
-                    if (bitsTgSubStates.Get(1))
-                    {
-                        //El cambio de estado que se ha producido en la sonda sí es de alarma
-                        //Procesar el texto
-                        if ((byte)arrResponse.GetValue(12) > 0)//Comprobar longitud del texto
-                        {
-                            bytesAlarmTxt = new byte[(byte)arrResponse.GetValue(12)];
-                            for (byte i = 0; i < bytesAlarmTxt.Length; i++)
-                            {
-                                bytesAlarmTxt[i] = (byte)arrResponse.GetValue(13 + i);
-                            }
+        //        //Comprobar que la sonda está en estado de alarma
+        //        if (arrResponse != null)
+        //        {
+        //            bitsTgSubStates = new BitArray(new byte[] { (byte)arrResponse.GetValue(5) });
+        //            if (bitsTgSubStates.Get(1))
+        //            {
+        //                //El cambio de estado que se ha producido en la sonda sí es de alarma
+        //                //Procesar el texto
+        //                if ((byte)arrResponse.GetValue(12) > 0)//Comprobar longitud del texto
+        //                {
+        //                    bytesAlarmTxt = new byte[(byte)arrResponse.GetValue(12)];
+        //                    for (byte i = 0; i < bytesAlarmTxt.Length; i++)
+        //                    {
+        //                        bytesAlarmTxt[i] = (byte)arrResponse.GetValue(13 + i);
+        //                    }
 
-                            strAlarmTxt = Encoding.ASCII.GetString(bytesAlarmTxt);
-                        }
-                    }
-                }
+        //                    strAlarmTxt = Encoding.ASCII.GetString(bytesAlarmTxt);
+        //                }
+        //            }
+        //        }
 
-                return strAlarmTxt;
-            }
-            catch (Exception ex)
-            {
-                ServiceLogTPVCOFO.Instance.WriteLine("Error GetAlarmText:" + ex.Message, true);
-                throw ex;
-            }
-        }
+        //        return strAlarmTxt;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ServiceLogTPVCOFO.Instance.WriteLine("Error GetAlarmText:" + ex.Message, true);
+        //        throw ex;
+        //    }
+        //}
 
         /// <summary>
         /// Create connection with a WebService
@@ -1672,54 +1654,55 @@ namespace ServicioTPVAgenteLocal
         /// </summary>
         /// <param name="objCashRequest">the object that contais the ncompany, GUID of TPV and tipe of configuration</param>
         /// <returns></returns>
-        internal string insertAlarmTankGauge(string strUrlServidor, string strPathMethod, string strAlarmTankGauge)
-        {
-            #region Variables
-            string strResponseWS = string.Empty;
-            BE.TankGauge.TankGaugeAlarmHistoryRequest objTankGaugeAlarm = null;
-            #endregion
+        //private string insertAlarmTankGauge(string strUrlServidor, string strPathMethod, string strAlarmTankGauge)
+        //{
+        //    #region Variables
+        //    string strResponseWS = string.Empty;
+        //    BE.TankGauge.TankGaugeAlarmHistoryRequest objTankGaugeAlarm = null;
+        //    #endregion
 
-            try
-            {
-                ServiceLogTPVCOFO.Instance.WriteLine("Inicio Método insertAlarmTankGauge:", true);
-                objTankGaugeAlarm = JsonConvert.DeserializeObject<BE.TankGauge.TankGaugeAlarmHistoryRequest>(strAlarmTankGauge);
-                if (Generic.ServiceExists(strUrlServidor))
-                {
-                    ServiceLogTPVCOFO.Instance.WriteLine("Servidor Correcto - insertAlarmTankGauge  ", true);
-                    strResponseWS = Generic.ConnectionWSRest(strUrlServidor, strPathMethod, objTankGaugeAlarm);
-                }
-                else
-                {
-                    ServiceLogTPVCOFO.Instance.WriteLine("No se ha conectado a servidor: " + strUrlServidor, true);
-                }
+        //    try
+        //    {
+        //        ServiceLogTPVCOFO.Instance.WriteLine("Inicio Método insertAlarmTankGauge:", true);
+        //        objTankGaugeAlarm = JsonConvert.DeserializeObject<BE.TankGauge.TankGaugeAlarmHistoryRequest>(strAlarmTankGauge);
+        //        if (Generic.ServiceExists(strUrlServidor))
+        //        {
+        //            ServiceLogTPVCOFO.Instance.WriteLine("Servidor Correcto - insertAlarmTankGauge  ", true);
+        //            strResponseWS = Generic.ConnectionWSRest(strUrlServidor, strPathMethod, objTankGaugeAlarm);
+        //        }
+        //        else
+        //        {
+        //            ServiceLogTPVCOFO.Instance.WriteLine("No se ha conectado a servidor: " + strUrlServidor, true);
+        //        }
 
-            }
-            catch (Exception ex)
-            {
-                if(ex.InnerException !=null)
-                    ServiceLogTPVCOFO.Instance.WriteLine("Error insertAlarmTankGauge:" + ex.InnerException.Message, true);
-                else
-                    ServiceLogTPVCOFO.Instance.WriteLine("Error insertAlarmTankGauge:" + ex.Message, true);
-            }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if(ex.InnerException !=null)
+        //            ServiceLogTPVCOFO.Instance.WriteLine("Error insertAlarmTankGauge:" + ex.InnerException.Message, true);
+        //        else
+        //            ServiceLogTPVCOFO.Instance.WriteLine("Error insertAlarmTankGauge:" + ex.Message, true);
+        //    }
 
-            return strResponseWS;
-        }
+        //    return strResponseWS;
+        //}
 
-        internal void fnCleanAlarm()
-        {
-            ServiceLogTPVCOFO.Instance.WriteLine("Limpiar Variables Alarma.", true);
-            if (fcAlarm != null)
-            {
-                fcAlarm.Disconnect();
-                fcAlarm = null;
-                idpAlarm = null;
-            }
-            if (threadTgAlarms != null)
-            {
-                threadTgAlarms.Join(1000);
-                threadTgAlarms.Abort();
-            }
-        }
+        //private void fnCleanAlarm()
+        //{
+        //    ServiceLogTPVCOFO.Instance.WriteLine("Limpiar Variables Alarma.", true);
+        //    if (fcAlarm != null)
+        //    {
+        //        fcAlarm.Disconnect();
+        //        fcAlarm = null;
+        //        idpAlarm = null;
+        //    }
+        //    if (threadTgAlarms != null)
+        //    {
+        //        threadTgAlarms.Join(1000);
+        //        threadTgAlarms.Abort();
+        //    }
+        //} 
+        #endregion
 
     }
 }
