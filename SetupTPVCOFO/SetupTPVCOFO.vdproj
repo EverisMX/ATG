@@ -234,7 +234,7 @@
                     "Attributes" = "3:512"
                     }
                 }
-            "SourcePath" = "8:..\\..\\Agente-Local-DOMS-Librery-master\\DOMSLibrary\\bin\\Debug\\DOMSLibrary.dll"
+            "SourcePath" = "8:..\\IC-Source\\DOMS Librery\\DOMSLibrary\\bin\\Debug\\DOMSLibrary.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_85B3F5028368400AA6BD6165CD10FCE0"
