@@ -15,7 +15,7 @@ namespace DOMSLibrary
 
         public DOMSTankGauge()
         {
-
+            Logger.Log("Instancia creada");
         }
 
         public string fnObtenerTankGaugeData(string pstrHost, string pbytPosId, string pscompany, string pstoreID, string psUserID, string pstrMaquina, string strTanksID)
@@ -27,6 +27,7 @@ namespace DOMSLibrary
 
             try
             {
+                Logger.Log("Entrada", new { pstrHost, pbytPosId, pscompany, pstoreID, psUserID, pstrMaquina, strTanksID });
                 /*
                 * MX- Se utiliza para obtener los parametros del TankID con el TankGaudeID de la configuracio.
                 */
@@ -112,11 +113,12 @@ namespace DOMSLibrary
                 {
                     json = "";
                 }
-
+                Logger.Log("salida", json);
                 return json;
             }
             catch (Exception ex)
             {
+                Logger.LogException(ex);
                 throw new Exception(ex.Message, ex.InnerException);
             }
 
@@ -131,6 +133,7 @@ namespace DOMSLibrary
 
             try
             {
+                Logger.Log("Entrada", new { pstrHost, pbytPosId, pscompany, pstoreID, psUserID, pstrMaquina, strTanksID });
                 string[] objectItemTanksDev = strTanksID.Split('|');
 
                 Thread.Sleep(5000); // Es necesario parar el hilo?
@@ -223,19 +226,21 @@ namespace DOMSLibrary
                     }
 
                     json = TransformJson(LstobjTank);
-                    
+
 
                 }
                 else
                 {
                     json = "";
                 }
+                Logger.Log("salida", json);
 
                 return json;
 
             }
             catch (Exception ex)
             {
+                Logger.LogException(ex);
                 throw new Exception(ex.Message);
             }
 
@@ -250,6 +255,7 @@ namespace DOMSLibrary
 
             try
             {
+                Logger.Log("Entrada", new { pstrHost, pbytPosId, pscompany, pstoreID, psUserID, pstrMaquina });
                 Thread.Sleep(5000); // es necesario parar el hilo?
 
                 strFechaIso = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -275,10 +281,12 @@ namespace DOMSLibrary
                     lsttgfFuelling.Add(objFuelling);
                 }
                 json = TransformJson(lsttgfFuelling);
+                Logger.Log("salida", json);
                 return json;
             }
             catch (Exception ex)
             {
+                Logger.LogException(ex);
                 throw new Exception(ex.Message);
             }
 

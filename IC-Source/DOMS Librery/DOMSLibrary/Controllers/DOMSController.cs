@@ -44,7 +44,7 @@ namespace DOMSLibrary
         /// <summary>
         /// Semaforo  para acceso a doms
         /// </summary>
-        private readonly static SemaphoreSlim _DOMSSemaphore = new SemaphoreSlim(0, 1);
+        private readonly static SemaphoreSlim _DOMSSemaphore = new SemaphoreSlim(1, 1);
 
         private readonly Forecourt Forecourt = null;
         private readonly IFCConfig IFCConfig = null;

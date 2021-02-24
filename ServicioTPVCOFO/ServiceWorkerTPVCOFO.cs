@@ -30,7 +30,7 @@ namespace ServicioTPVAgenteLocal
         string msg = "";
         SysDataTPVCOFO _SysData = new SysDataTPVCOFO();
         enum Unit { B, KB, MB, GB, TB, ER };
-        
+
 
         #region Contructor
         /// <summary>
@@ -249,12 +249,12 @@ namespace ServicioTPVAgenteLocal
                     }
                 }
                 msg += "\r\n" + "Finaliza Proceso Timer ... ..." + host.HostName;
-                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------",true);
+                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------", true);
             }
             catch (Exception e)
             {
                 msg += "\r\n" + "Check " + host + ", Error: " + e.Message;
-                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------",true);
+                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------", true);
             }
         }
 
@@ -264,7 +264,7 @@ namespace ServicioTPVAgenteLocal
         /// <param name="iTipoRespuesta">Tipo de control de Respuesta --> No Controlado, Tiempo Real o batch  </param>
         /// <param name="bt"></param>
         /// <param name="strNombreArchBatch"></param>
-        private void SendMessageByTipoRespuesta(int iTipoRespuesta, ServiceConfigTPVCOFO.Batch bt, String strNombreArchBatch, string strCarpetaOrigen = "", string strCarpetaDestino = "BatchEnviados", bool bolConFecha = true, bool pbolVolumen=false, bool pbolenParalelo=true)
+        private void SendMessageByTipoRespuesta(int iTipoRespuesta, ServiceConfigTPVCOFO.Batch bt, String strNombreArchBatch, string strCarpetaOrigen = "", string strCarpetaDestino = "BatchEnviados", bool bolConFecha = true, bool pbolVolumen = false, bool pbolenParalelo = true)
         {
             switch (iTipoRespuesta)
             {
@@ -278,7 +278,7 @@ namespace ServicioTPVAgenteLocal
                     break;
                 case (int)TipoRespuesta.RPT_BATCH:
                     // armar el batch y verificar si está en ejecución
-                    SendMessageToBatch(bt, strNombreArchBatch,strCarpetaOrigen,strCarpetaDestino,bolConFecha, pbolVolumen, pbolenParalelo);
+                    SendMessageToBatch(bt, strNombreArchBatch, strCarpetaOrigen, strCarpetaDestino, bolConFecha, pbolVolumen, pbolenParalelo);
                     break;
             }
         }
@@ -288,9 +288,9 @@ namespace ServicioTPVAgenteLocal
         /// </summary>
         /// <param name="bt"> Variable tipo BATCH que contiene información requerida para la ejecución del proceso </param>
         /// <param name="strNombreArchBatch">Nombre del archivo BATCH</param>
-        public void SendMessageToBatch(ServiceConfigTPVCOFO.Batch bt, string strNombreArchBatch, string strCarpetaOrigen = "", string strCarpetaDestino = "BatchEnviados", bool bolConFecha = true, bool pbolVolumen=false, bool pbolenParalelo = true)
+        public void SendMessageToBatch(ServiceConfigTPVCOFO.Batch bt, string strNombreArchBatch, string strCarpetaOrigen = "", string strCarpetaDestino = "BatchEnviados", bool bolConFecha = true, bool pbolVolumen = false, bool pbolenParalelo = true)
         {
-            DateTime fechaActual ;
+            DateTime fechaActual;
             string strError = "";
             try
             {
@@ -324,13 +324,13 @@ namespace ServicioTPVAgenteLocal
 
                                         if (fechaActual > fechaEjecucion)
                                         {
-                                                ServiceLogTPVCOFO.Instance.WriteLine("RptaBatch" + strNombreArchBatch + "\r\n RESPONSE 2: " + fechaActual.ToString() + "\r\n");
-                                                bt.sNextExecutionDatetime = fechaActual.AddMinutes(bt.TimeMinuteBatchCycle).ToString("dd/MM/yyyy HH:mm:ss");
-                                                bt.iExecutionState = (int)TipoExecuteBatch.EXECUTING;
-                                                ServiceLogTPVCOFO.Instance.WriteLine("\r\n RptaBatch" + strNombreArchBatch + "Ejecución de Batch " + strNombreArchBatch + "\r\n");
-                                                //Hacer traslado de archivo 
-                                                MoverArchivoBatch(bt, strNombreArchBatch, strCarpetaOrigen, strCarpetaDestino, bolConFecha, pbolVolumen);
-                                                bt.iExecutionState = (int)TipoExecuteBatch.NO_EXECUTE;
+                                            ServiceLogTPVCOFO.Instance.WriteLine("RptaBatch" + strNombreArchBatch + "\r\n RESPONSE 2: " + fechaActual.ToString() + "\r\n");
+                                            bt.sNextExecutionDatetime = fechaActual.AddMinutes(bt.TimeMinuteBatchCycle).ToString("dd/MM/yyyy HH:mm:ss");
+                                            bt.iExecutionState = (int)TipoExecuteBatch.EXECUTING;
+                                            ServiceLogTPVCOFO.Instance.WriteLine("\r\n RptaBatch" + strNombreArchBatch + "Ejecución de Batch " + strNombreArchBatch + "\r\n");
+                                            //Hacer traslado de archivo 
+                                            MoverArchivoBatch(bt, strNombreArchBatch, strCarpetaOrigen, strCarpetaDestino, bolConFecha, pbolVolumen);
+                                            bt.iExecutionState = (int)TipoExecuteBatch.NO_EXECUTE;
                                         }
                                     }
                                     break;
@@ -352,7 +352,7 @@ namespace ServicioTPVAgenteLocal
                     if (bt != null)
                     {
                         bt.iExecutionState = (int)TipoExecuteBatch.EXECUTING;
-                        ServiceLogTPVCOFO.Instance.WriteLine("\r\n RptaBatch" + strNombreArchBatch + ": Ejecución de Batch Secuencial: " + strNombreArchBatch + " | Carpeta Origen: "+ strCarpetaOrigen+ " - " + "Carpeta Destino: " + strCarpetaDestino + "\r\n",true);
+                        ServiceLogTPVCOFO.Instance.WriteLine("\r\n RptaBatch" + strNombreArchBatch + ": Ejecución de Batch Secuencial: " + strNombreArchBatch + " | Carpeta Origen: " + strCarpetaOrigen + " - " + "Carpeta Destino: " + strCarpetaDestino + "\r\n", true);
                         MoverArchivoBatch(bt, strNombreArchBatch, strCarpetaOrigen, strCarpetaDestino, bolConFecha, pbolVolumen);
                         ServiceLogTPVCOFO.Instance.WriteLine("\r\n RptaBatch" + strNombreArchBatch + ": Fin de Batch Secuencial " + strNombreArchBatch + "\r\n", true);
                         bt.iExecutionState = (int)TipoExecuteBatch.NO_EXECUTE;
@@ -367,12 +367,12 @@ namespace ServicioTPVAgenteLocal
                     strError = e.Message;
 
                 bt.iExecutionState = (int)TipoExecuteBatch.NO_EXECUTE;
-                ServiceLogTPVCOFO.Instance.WriteLine("\r\n" + "Error en SendMessageToBatch: " + strError + "\r\n",true);
+                ServiceLogTPVCOFO.Instance.WriteLine("\r\n" + "Error en SendMessageToBatch: " + strError + "\r\n", true);
             }
 
         }
 
-        private void fnMoveFileAll(string pstrPathSource,string pstrNombreArchBatch,string pstrPathDest, bool pbolconFecha)
+        private void fnMoveFileAll(string pstrPathSource, string pstrNombreArchBatch, string pstrPathDest, bool pbolconFecha)
         {
             List<string> lstFile = new List<string>();
             int intPos = 0;
@@ -397,7 +397,7 @@ namespace ServicioTPVAgenteLocal
         /// </summary>
         /// <param name="bt"> Variable tipo BATCH que contiene información requerida para la ejecución del proceso </param>
         /// <param name="fileName">Nombre del archivo BATCH</param> 
-        public void MoverArchivoBatch(ServiceConfigTPVCOFO.Batch bt, string sFileName,string strCarpetaOrigen="", string strCarpetaDestino= "BatchEnviados",bool bolConFecha=true,bool bolVolumen=false) 
+        public void MoverArchivoBatch(ServiceConfigTPVCOFO.Batch bt, string sFileName, string strCarpetaOrigen = "", string strCarpetaDestino = "BatchEnviados", bool bolConFecha = true, bool bolVolumen = false)
         {
             string sourceFile = "";
             string destFile = "";
@@ -424,16 +424,16 @@ namespace ServicioTPVAgenteLocal
                 //}
                 //else
                 //{
-                    path = Assembly.GetExecutingAssembly().Location;
-                    pos = path.IndexOf("\\");
-                    path = path.Substring(0, pos);
-                    sourcePath = path + @"\CETEL\ServiceTPVCOFO_Files\" + strCarpetaOrigen;
+                path = Assembly.GetExecutingAssembly().Location;
+                pos = path.IndexOf("\\");
+                path = path.Substring(0, pos);
+                sourcePath = path + @"\CETEL\ServiceTPVCOFO_Files\" + strCarpetaOrigen;
                 //}
 
                 if (!File.Exists(sFileName))
                 {
-                    sourceFile = System.IO.Path.Combine(sourcePath, sFileName+".log");
-                    destFile = System.IO.Path.Combine(targetPath, sFileName+".log");
+                    sourceFile = System.IO.Path.Combine(sourcePath, sFileName + ".log");
+                    destFile = System.IO.Path.Combine(targetPath, sFileName + ".log");
                 }
                 else
                 {
@@ -471,7 +471,8 @@ namespace ServicioTPVAgenteLocal
                             fnMoveFileAll(sourcePath, sFileName, targetPath, bolConFecha);
                     }
                 }
-                catch(Exception e) {
+                catch (Exception e)
+                {
                     if (e.InnerException != null)
                         strError = e.InnerException.Message;
                     else
@@ -486,9 +487,9 @@ namespace ServicioTPVAgenteLocal
                 if (e.InnerException != null)
                     strError = e.InnerException.Message;
                 else
-                    strError= e.Message;
+                    strError = e.Message;
 
-                ServiceLogTPVCOFO.Instance.WriteLine("Error MoverArchivoBatch: " + strError + "\r\n" + "---------------------------------------------------",true);
+                ServiceLogTPVCOFO.Instance.WriteLine("Error MoverArchivoBatch: " + strError + "\r\n" + "---------------------------------------------------", true);
             }
         }
         #endregion
@@ -499,7 +500,7 @@ namespace ServicioTPVAgenteLocal
         /// </summary>
         /// <param name="pstrNombreArchBatch"> Nombre del BATCH </param>
         /// <param name="pstrRptaServicio">Respuesta del Servicio</param> 
-        internal void fnInvokeServiceWriteVolumen(string pstrNombreArchBatch, out string pstrRptaServicio )
+        internal void fnInvokeServiceWriteVolumen(string pstrNombreArchBatch, out string pstrRptaServicio)
         {
             List<string> lstFile = new List<string>();
             string sModuleName = "";
@@ -509,7 +510,7 @@ namespace ServicioTPVAgenteLocal
             string sPath = Assembly.GetExecutingAssembly().Location;
             int iPos = sPath.IndexOf("\\");
             sModuleName = sPath.Substring(iPos + 1);
-            sPath = sPath.Substring(0, sPath.IndexOf(sModuleName))+ @"CETEL\ServiceTPVCOFO_Files\BatchPendientes\";
+            sPath = sPath.Substring(0, sPath.IndexOf(sModuleName)) + @"CETEL\ServiceTPVCOFO_Files\BatchPendientes\";
             Generic.DirSearch(lstFile, sPath, pstrNombreArchBatch);
 
             foreach (string strPathFileSource in lstFile)
@@ -523,7 +524,7 @@ namespace ServicioTPVAgenteLocal
                     batchH = null;
                     rptaServicio = rptaServicio + pstrNombreArchBatch + ": " + objResponseApi.Message + "\r\n";
                     if (SW.BitSaveResponse)
-                        Generic.DeleteTempFiles("BatchPendientes", pstrNombreArchBatch+"*.log", 0);
+                        Generic.DeleteTempFiles("BatchPendientes", pstrNombreArchBatch + "*.log", 0);
                     //    SendMessageByTipoRespuesta((SW.BitBatchResponse ? 2 : 1), batchConfig, strPathFileSource, "BatchPendientes", "BatchEnviados", true, false, false);
                     //else
 
@@ -565,17 +566,17 @@ namespace ServicioTPVAgenteLocal
                         fnInvokeServiceWriteVolumen(SW.BatchName, out rptaServicio);
                         break;
                 }
-                
+
                 msg += rptaServicio;
                 if (batchH != null)
                     batchH.WriteLineBatch(SW.BatchName, rptaServicio);
 
                 msg += "\r\n" + "Finaliza Proceso Timer WS... ..." + SW.EndPoint;
-                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------",true);
+                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------", true);
             }
             catch (Exception e)
             {
-                if( e.InnerException!= null)
+                if (e.InnerException != null)
                     ServiceLogTPVCOFO.Instance.WriteLine(e.InnerException.ToString());
                 else
                     ServiceLogTPVCOFO.Instance.WriteLine(e.Message.ToString());
@@ -647,7 +648,7 @@ namespace ServicioTPVAgenteLocal
         #endregion
 
         #region "Timer Proc Library"
-            
+
         /// <summary>
         /// Método que se desencadenara por cada vez que se ejecute el Timer Configurado para ejecución de los Hilos Tipo Web Library. 
         /// </summary>
@@ -667,7 +668,7 @@ namespace ServicioTPVAgenteLocal
                 msg = "";
                 msg += "\r\n" + "Inicia Timer Library  ... " + idxThread + " - " + lib.BatchName + " " + lib.ClaseName + " " + lib.FuncionName + "(" + " " + lib.Parameters + ") " + "Tanks " + lib.Tanks;
                 msg += "\r\n" + "------ Check Library ------";
-
+                ServiceLogTPVCOFO.Instance.WriteLine("------ Check Library ------", true);
                 ResponseLibrary = LibraryResponse(lib.LibreriaName, lib.ClaseName, lib.FuncionName, lib.Parameters, lib.Tanks);
 
                 intFileSize = ResponseLibrary.Length;
@@ -675,8 +676,8 @@ namespace ServicioTPVAgenteLocal
                 {
                     strResultado = "OK";
                     //if (lib.bitLogon)
-                        ResponseLibrary = ResponseLibrary.Substring(1, intFileSize - 2);
-  
+                    ResponseLibrary = ResponseLibrary.Substring(1, intFileSize - 2);
+
                     ResponseLibrary += ",";
                     if (batchH != null)
                         batchH.WriteLineBatch(lib.BatchName, ResponseLibrary, 0, true, intFileSize);//acepta división de archivos por volumen de data (4MB)
@@ -685,13 +686,13 @@ namespace ServicioTPVAgenteLocal
                 { ResponseLibrary = ""; }
 
                 //DeleteTempFiles("BatchEnviados", lib.BatchName + "*.log",-15);
-                Generic.DeleteTempFiles("Log",  "LOG*.log", -15);
+                Generic.DeleteTempFiles("Log", "LOG*.log", -15);
 
                 if (lib.BitSaveResponse && strResultado != "(Archivo Vacío)")
                     SendMessageByTipoRespuesta((lib.BitBatchResponse ? 2 : 1), batchConfig, lib.BatchName, "", "BatchPendientes", false, true, false);
 
-                msg += "\r\n" + "Finaliza Proceso "+ strResultado + " Timer WS... ..." + " - " + lib.BatchName + " " + lib.ClaseName + " " + lib.FuncionName + "(" + " " + lib.Parameters + ") " + "Tanks " + lib.Tanks;
-                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------",true);
+                msg += "\r\n" + "Finaliza Proceso " + strResultado + " Timer WS... ..." + " - " + lib.BatchName + " " + lib.ClaseName + " " + lib.FuncionName + "(" + " " + lib.Parameters + ") " + "Tanks " + lib.Tanks;
+                ServiceLogTPVCOFO.Instance.WriteLine(msg + "\r\n" + "---------------------------------------------------", true);
             }
             catch (Exception e)
             {

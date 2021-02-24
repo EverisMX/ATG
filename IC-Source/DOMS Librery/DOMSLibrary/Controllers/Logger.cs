@@ -25,7 +25,7 @@ namespace DOMSLibrary
                 if (string.IsNullOrEmpty(_cachePathFile))
                 {
                     _cachePathFile = Assembly.GetExecutingAssembly().Location;
-                    int iPos = _cachePathFile.IndexOf(".exe");
+                    int iPos = _cachePathFile.IndexOf(".dll");
                     DateTime dt = DateTime.Now;
 
                     _cachePathFile = _cachePathFile.Substring(0, iPos);
@@ -40,9 +40,9 @@ namespace DOMSLibrary
         /// <summary>
         /// semaforo para acceso a fichero log
         /// </summary>
-        private static SemaphoreSlim _logSemaphore = new SemaphoreSlim(0, 1);
+        private static SemaphoreSlim _logSemaphore = new SemaphoreSlim(1, 1);
 
-        
+
 
         /// <summary>
         /// Escribe una traza
@@ -61,7 +61,7 @@ namespace DOMSLibrary
                 try
                 {
                     string jsonData = data == null ? string.Empty : new JavaScriptSerializer().Serialize(data);
-                    string text = $"{DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss.SSS")} {callerType.Namespace}.{callerType.Name}.{callerMethod.Name} => {msg} {Environment.NewLine} {jsonData}";
+                    string text = $"{DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss.fff")} {callerType.Namespace}.{callerType.Name}.{callerMethod.Name} => {msg} {Environment.NewLine} {jsonData}";
                     stream.WriteLine(text);
                 }
                 finally
@@ -97,7 +97,7 @@ namespace DOMSLibrary
                 try
                 {
                     string exMsj = GetStringFromException(e);
-                    string text = $"{DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss.SSS")} {callerType.Namespace}.{callerType.Name}.{callerMethod.Name} => {msg} {Environment.NewLine} {exMsj}";
+                    string text = $"{DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss.fff")} {callerType.Namespace}.{callerType.Name}.{callerMethod.Name} => {msg} {Environment.NewLine} {exMsj}";
                     stream.WriteLine(text);
                 }
                 finally
