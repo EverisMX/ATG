@@ -84,9 +84,9 @@ namespace DOMSLibrary
         /// <summary>
         /// Logea una excepcion
         /// </summary>
-        /// <param name="msg"></param>
         /// <param name="e"></param>
-        public static void LogException(string msg, Exception e = null)
+        /// <param name="msg"></param>
+        public static void LogException(Exception e, string msg = "")
         {
             try
             {
@@ -116,11 +116,7 @@ namespace DOMSLibrary
                 _logSemaphore.Release();
             }
         }
-
-        public static void LogException(Exception e)
-        {
-            LogException("", e);
-        }
+        
         /// <summary>
         /// Obtiene la representacion en string de la Excepcion
         /// </summary>
@@ -133,10 +129,10 @@ namespace DOMSLibrary
                 return string.Empty;
             }
             StringBuilder ret = new StringBuilder();
-            ret = ret.AppendLine($"Excepcion Message:{e.Message}").AppendLine($"en: {e.Source}").AppendLine($"StackTrace: {e.StackTrace}");
+            ret = ret.AppendLine($"Excepcion: {e.ToString()}");
             if (e.InnerException != null)
             {
-                ret = ret.AppendLine(GetStringFromException(e.InnerException));
+                ret = ret.AppendLine($"Inner Exception: {GetStringFromException(e.InnerException)}" );
             }
             return ret.ToString();
         }
