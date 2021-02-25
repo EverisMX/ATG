@@ -214,6 +214,10 @@ namespace DOMSLibrary
                 FuellingPointCollection fpCollection = IFCConfig.FuellingPoints;
                 Logger.Log("Llamada IFCConfig.FuellingPoints con exito.", fpCollection);
 
+                Logger.Log("Llamada IFCConfig.Grades");
+                GradeCollection gcGrade = IFCConfig.Grades;
+                Logger.Log("Llamada IFCConfig.Grades con exito", gcGrade);
+
                 // MX- Se coloca la Interfaz de la invocacion del Fuelling para el Objeto.
                 foreach (FuellingPoint fuellingPoint in fpCollection)
                 {
@@ -230,7 +234,7 @@ namespace DOMSLibrary
                             GrandVolTotal = Convert.ToDecimal(fptPunto.GrandVolTotal),
                             GrandMoneyTotal = Convert.ToDecimal(fptPunto.GrandMoneyTotal),
                             GradeID = gradeTotal.GradeId,
-                            GradeTotal = ((GradeCollection)null).Item[gradeTotal.GradeId].Text,
+                            GradeTotal = gcGrade.Item[gradeTotal.GradeId].Text,
                             GradeVolTotal = Convert.ToDecimal(gradeTotal.GradeVolTotal)
                         });
                     }
@@ -257,7 +261,9 @@ namespace DOMSLibrary
         /// </summary>
         private void _performDisconnect()
         {
+            Logger.Log("Llamada  Forecourt.Disconnect");
             Forecourt.Disconnect();
+            Logger.Log("Llamada  Forecourt.Disconnect con exito");
         }
 
         /// <summary>
