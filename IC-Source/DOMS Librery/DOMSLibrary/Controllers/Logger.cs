@@ -13,7 +13,13 @@ namespace DOMSLibrary
     /// </summary>
     internal static class Logger
     {
-
+        /// <summary>
+        /// Guarda la fecha actual en la que se crea el log
+        /// </summary>
+        private static DateTime? _dateOfLogFile = null;
+        /// <summary>
+        /// Mantiene en cache la ruta al fichero log del dia
+        /// </summary>
         private static string _cachePathFile = null;
         /// <summary>
         /// Path del fichero
@@ -22,16 +28,26 @@ namespace DOMSLibrary
         {
             get
             {
+                // inicializa fecha de log
+                if (_dateOfLogFile == null)
+                {
+                    _dateOfLogFile = DateTime.Today;
+                }
+                // si hoy no es la misma fecha del log, borramos cache de ruta al fichero
+                if (DateTime.Today.Date != _dateOfLogFile.Value.Date)
+                {
+                    _cachePathFile = string.Empty;
+                }
+                // si no esta cacheado el path, generamos ruta con la fecha del log
                 if (string.IsNullOrEmpty(_cachePathFile))
                 {
                     _cachePathFile = Assembly.GetExecutingAssembly().Location;
                     int iPos = _cachePathFile.IndexOf(".dll");
-                    DateTime dt = DateTime.Now;
 
                     _cachePathFile = _cachePathFile.Substring(0, iPos);
                     iPos = _cachePathFile.IndexOf("\\");
                     _cachePathFile = _cachePathFile.Substring(0, iPos) + @"\CETEL\ServiceTPVCOFO_Files\Log\";
-                    _cachePathFile += "DOMSLibrary" + dt.ToString("yyyyMMdd") + ".log";
+                    _cachePathFile += "DOMSLibrary" + _dateOfLogFile.Value.ToString("yyyyMMdd") + ".log";
                 }
                 return _cachePathFile;
             }
