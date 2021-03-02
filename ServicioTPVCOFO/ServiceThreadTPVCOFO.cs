@@ -26,7 +26,8 @@ namespace ServicioTPVAgenteLocal
         #region Vars
         MultiThread _multithread;
         ServiceConfigTPVCOFO _config;
-        static Timer[] _myTimer = null;
+        // Se dimenciona el timer para encajar otros hilos relevantes al servicio.
+        static Timer[][] _myTimer = null;
         static int TOTAL_HOST = 0;
         static int TOTAL_WS = 0;
         static int TOTAL_SOCKET = 0;
@@ -84,7 +85,7 @@ namespace ServicioTPVAgenteLocal
                             worker = new ServiceWorkerTPVCOFO[TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1];
                             batch = new ServiceBatchTPVCOFO[intCantBatch];
                             batchConfig = new ServiceConfigTPVCOFO.Batch[intCantBatch];
-                            _myTimer = new Timer[TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1];
+                            _myTimer = new Timer[TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1][];
                             _multithread = new MultiThread(TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1);
                             CreateMultiThreads();
 
@@ -109,7 +110,7 @@ namespace ServicioTPVAgenteLocal
                                 worker = new ServiceWorkerTPVCOFO[2];
                                 batch = new ServiceBatchTPVCOFO[intCantBatch];
                                 batchConfig = new ServiceConfigTPVCOFO.Batch[intCantBatch];
-                                _myTimer = new Timer[2];
+                                _myTimer = new Timer[2][];
                                 _multithread = new MultiThread(2);
                                 CreatePrimaryThreads(_config.ListServicioWeb, "Batch_Operation_Reconnection");
                             }
@@ -125,7 +126,7 @@ namespace ServicioTPVAgenteLocal
                             worker = new ServiceWorkerTPVCOFO[2];
                             batch = new ServiceBatchTPVCOFO[intCantBatch];
                             batchConfig = new ServiceConfigTPVCOFO.Batch[intCantBatch];
-                            _myTimer = new Timer[2];
+                            _myTimer = new Timer[2][];
                             _multithread = new MultiThread(2);
                             //CreateStopThreads(_config.ListServicioWeb);
                             CreatePrimaryThreads(_config.ListServicioWeb, "Batch_Configuration_Reconnection");
@@ -139,7 +140,7 @@ namespace ServicioTPVAgenteLocal
                             worker = new ServiceWorkerTPVCOFO[2];
                             batch = new ServiceBatchTPVCOFO[intCantBatch];
                             batchConfig = new ServiceConfigTPVCOFO.Batch[intCantBatch];
-                            _myTimer = new Timer[2];
+                            _myTimer = new Timer[2][];
                             _multithread = new MultiThread(2);
                             CreatePrimaryThreads(_config.ListServicioWeb, "Batch_Operation_Reconnection");
                         }
@@ -151,7 +152,7 @@ namespace ServicioTPVAgenteLocal
                     worker = new ServiceWorkerTPVCOFO[2];
                     batch = new ServiceBatchTPVCOFO[intCantBatch];
                     batchConfig = new ServiceConfigTPVCOFO.Batch[intCantBatch];
-                    _myTimer = new Timer[2];
+                    _myTimer = new Timer[2][];
                     _multithread = new MultiThread(2);
                     CreatePrimaryThreads(_config.ListServicioWeb, "Batch_Operation_Reconnection");
                 }
@@ -170,7 +171,7 @@ namespace ServicioTPVAgenteLocal
                     worker = new ServiceWorkerTPVCOFO[2];
                     batch = new ServiceBatchTPVCOFO[intCantBatch];
                     batchConfig = new ServiceConfigTPVCOFO.Batch[intCantBatch];
-                    _myTimer = new Timer[2];
+                    _myTimer = new Timer[2][];
                     _multithread = new MultiThread(2);
                     CreatePrimaryThreads(_config.ListServicioWeb, "Batch_Operation_Reconnection");
                 }
@@ -194,8 +195,8 @@ namespace ServicioTPVAgenteLocal
             _multithread.Thread[0].Abort();
             _multithread.Thread[1].Join(1000);
             _multithread.Thread[1].Abort();
-            _myTimer[0].Dispose();
-            _myTimer[1].Dispose();
+            _myTimer[0][0].Dispose();
+            _myTimer[1][1].Dispose();
 
         }
 
@@ -250,7 +251,16 @@ namespace ServicioTPVAgenteLocal
                     {
                         for (int i = 0; i < _myTimer.Count() - 1; i++)
                         {
-                            _myTimer[i].Dispose();
+                            // Se recolecta el arr origen en una variable auxiliar para recorrerlo
+                            var _arrTimerC = _myTimer[i];
+                            if (_arrTimerC != null)
+                            {
+                                // Se verifica los timer existentes en la matriz asi para destruir el objeto.
+                                foreach(var _timer in _arrTimerC)
+                                {
+                                    _timer.Dispose();
+                                }
+                            }
                         }
                     }
                 }
@@ -309,8 +319,8 @@ namespace ServicioTPVAgenteLocal
                     _multithread.Thread[0].Abort();
                     _multithread.Thread[1].Join(1000);
                     _multithread.Thread[1].Abort();
-                    _myTimer[0].Dispose();
-                    _myTimer[1].Dispose();
+                    _myTimer[0][0].Dispose();
+                    _myTimer[1][1].Dispose();
                     _config = GetXmlConfig();
 
                     if (_config != null)
@@ -320,7 +330,7 @@ namespace ServicioTPVAgenteLocal
                         worker = new ServiceWorkerTPVCOFO[TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1];
                         batch = new ServiceBatchTPVCOFO[intCantBatch];
                         batchConfig = new ServiceConfigTPVCOFO.Batch[intCantBatch];
-                        _myTimer = new Timer[TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1];
+                        _myTimer = new Timer[TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1][];
 
                         _multithread = new MultiThread(TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET + TOTAL_LIBRARY + 1);
                         CreateMultiThreads();
@@ -1188,7 +1198,7 @@ namespace ServicioTPVAgenteLocal
                 {
                     idx = Convert.ToInt32(Thread.CurrentThread.Name);
                     ServiceLogTPVCOFO.Instance.WriteLine("Thread Primary called Reconection: " + idx + " " + _config.ListServicioWeb[1].EndPoint + " - StartDelay: " + _config.ListServicioWeb[1].TimeStartDelay + " - CheckCycle: " + _config.ListServicioWeb[1].TimeCheckCycle);
-                    _myTimer[idx] = new Timer(StopService, o, _config.ListServicioWeb[1].TimeStartDelay, _config.ListServicioWeb[1].TimeCheckCycle);
+                    _myTimer[idx][0] = new Timer(StopService, o, _config.ListServicioWeb[1].TimeStartDelay, _config.ListServicioWeb[1].TimeCheckCycle);
                 }
                 catch (Exception e)
                 {
@@ -1214,7 +1224,7 @@ namespace ServicioTPVAgenteLocal
                 {
                     idx = Convert.ToInt32(Thread.CurrentThread.Name);
                     ServiceLogTPVCOFO.Instance.WriteLine("Thread Primary called Reconection: " + idx + " " + objReconexion.EndPoint + " - StartDelay: " + objReconexion.TimeStartDelay + " - CheckCycle: " + objReconexion.TimeCheckCycle);
-                    _myTimer[idx] = new Timer(TimerCallReconection, o, objReconexion.TimeStartDelay, objReconexion.TimeCheckCycle);
+                    _myTimer[idx][0] = new Timer(TimerCallReconection, o, objReconexion.TimeStartDelay, objReconexion.TimeCheckCycle);
                 }
                 catch (Exception e)
                 {
@@ -1239,7 +1249,25 @@ namespace ServicioTPVAgenteLocal
             {
                 int idx = Convert.ToInt32(Thread.CurrentThread.Name);
                 ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Host: " + idx + " " + _config.ListHosts[idx].HostName + " - StartDelay: " + _config.ListHosts[idx].TimeStartDelay + " - CheckCycle: " + _config.ListHosts[idx].TimeCheckCycle);
-                _myTimer[idx] = new Timer(worker[idx].TimerProcHost, o, _config.ListHosts[idx].TimeStartDelay, _config.ListHosts[idx].TimeCheckCycle);
+
+                // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
+                var getTimerAtProc = ExecuteAT_Of_TimeSpan(_config.ListHosts[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                // Se crea un nuevo objeto timer para el proceso.
+                _myTimer[idx] = new Timer[getTimerAtProc.Count + 1];
+                // Esto es el Hilo original.
+                _myTimer[idx][0] = new Timer(worker[idx].TimerProcHost, o, _config.ListHosts[idx].TimeStartDelay, _config.ListHosts[idx].TimeCheckCycle);
+
+                // Se hace bucle con los timer nuevos.
+                for (int countIntTimerArr = 0; countIntTimerArr <= getTimerAtProc.Count; countIntTimerArr++)
+                {
+                    DateTime dateTimeInstant = DateTime.Now;
+                    TimeSpan executeATDelay = getTimerAtProc[countIntTimerArr] - dateTimeInstant.TimeOfDay;
+                    if (executeATDelay < TimeSpan.Zero)
+                    {
+                        executeATDelay = executeATDelay.Add(TimeSpan.FromDays(1));
+                    }
+                    _myTimer[idx][countIntTimerArr] = new Timer(worker[idx].TimerProcHost, o, executeATDelay, new TimeSpan(24, 0, 0));
+                }
             }
             catch (Exception e)
             {
@@ -1261,7 +1289,25 @@ namespace ServicioTPVAgenteLocal
 
                 idx = Convert.ToInt32(Thread.CurrentThread.Name);
                 ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called WS: " + idx + " " + _config.ListServicioWeb[idx - TOTAL_HOST].EndPoint + " - StartDelay: " + _config.ListServicioWeb[idx - TOTAL_HOST].TimeStartDelay + " - CheckCycle: " + _config.ListServicioWeb[idx - TOTAL_HOST].TimeCheckCycle);
-                _myTimer[idx] = new Timer(worker[idx].TimerProcWebService, o, _config.ListServicioWeb[idx - TOTAL_HOST].TimeStartDelay, _config.ListServicioWeb[idx - TOTAL_HOST].TimeCheckCycle);
+                
+                // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
+                var getTimerAtWS = ExecuteAT_Of_TimeSpan(_config.ListServicioWeb[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                // Se crea un nuevo objeto timer para el proceso.
+                _myTimer[idx] = new Timer[getTimerAtWS.Count + 1];
+                // Esto es el Hilo original.
+                _myTimer[idx][0] = new Timer(worker[idx].TimerProcWebService, o, _config.ListServicioWeb[idx - TOTAL_HOST].TimeStartDelay, _config.ListServicioWeb[idx - TOTAL_HOST].TimeCheckCycle);
+
+                // Se hace bucle con los timer nuevos.
+                for (int countIntTimerArr = 0; countIntTimerArr <= getTimerAtWS.Count; countIntTimerArr++)
+                {
+                    DateTime dateTimeInstant = DateTime.Now;
+                    TimeSpan executeATDelay = getTimerAtWS[countIntTimerArr] - dateTimeInstant.TimeOfDay;
+                    if (executeATDelay < TimeSpan.Zero)
+                    {
+                        executeATDelay = executeATDelay.Add(TimeSpan.FromDays(1));
+                    }
+                    _myTimer[idx][countIntTimerArr] = new Timer(worker[idx].TimerProcWebService, o, executeATDelay, new TimeSpan(24, 0, 0));
+                }
             }
             catch (Exception e)
             {
@@ -1282,7 +1328,25 @@ namespace ServicioTPVAgenteLocal
             {
                 idx = Convert.ToInt32(Thread.CurrentThread.Name);
                 ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Socket: " + idx + " sIP:" + _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].IP + " iPuerto:" + _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].Puerto + " - CheckCycle: " + _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle);
-                _myTimer[idx] = new Timer(worker[idx].TimerProcSocket, o, _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle, _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle);
+                
+                // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
+                var getTimerAtSocket = ExecuteAT_Of_TimeSpan(_config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                // Se crea un nuevo objeto timer para el proceso.
+                _myTimer[idx] = new Timer[getTimerAtSocket.Count + 1];
+                // Esto es el Hilo original.
+                _myTimer[idx][0] = new Timer(worker[idx].TimerProcSocket, o, _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle, _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle);
+
+                // Se hace bucle con los timer nuevos.
+                for (int countIntTimerArr = 0; countIntTimerArr <= getTimerAtSocket.Count; countIntTimerArr++)
+                {
+                    DateTime dateTimeInstant = DateTime.Now;
+                    TimeSpan executeATDelay = getTimerAtSocket[countIntTimerArr] - dateTimeInstant.TimeOfDay;
+                    if (executeATDelay < TimeSpan.Zero)
+                    {
+                        executeATDelay = executeATDelay.Add(TimeSpan.FromDays(1));
+                    }
+                    _myTimer[idx][countIntTimerArr] = new Timer(worker[idx].TimerProcSocket, o, executeATDelay, new TimeSpan(24, 0, 0));
+                }
             }
             catch (Exception e)
             {
@@ -1303,7 +1367,7 @@ namespace ServicioTPVAgenteLocal
             {
                 idx = Convert.ToInt32(Thread.CurrentThread.Name);
                 ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Log: " + idx);
-                _myTimer[idx] = new Timer(worker[idx].TimerProcLog, o, 10000, 60000);
+                _myTimer[idx][0] = new Timer(worker[idx].TimerProcLog, o, 10000, 60000);
             }
             catch (Exception e)
             {
@@ -1321,7 +1385,25 @@ namespace ServicioTPVAgenteLocal
                 {
                     idx = Convert.ToInt32(Thread.CurrentThread.Name);
                     ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Library: " + idx + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].BatchName + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ClaseName + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].FuncionName + "(" + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].Parameters + ") " + "Tank: " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].Tanks + " - StartDelay: " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeStartDelay + " - CheckCycle: " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeCheckCycle);
-                    _myTimer[idx] = new Timer(worker[idx].TimerProcLibrary, o, _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeStartDelay, _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeCheckCycle);
+
+                    // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
+                    var getTimerAtLibrary = ExecuteAT_Of_TimeSpan(_config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                    // Se crea un nuevo objeto timer para el proceso.
+                    _myTimer[idx] = new Timer[getTimerAtLibrary.Count + 1];
+                    // Esto es el Hilo original.
+                    _myTimer[idx][0] = new Timer(worker[idx].TimerProcLibrary, o, _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeStartDelay, _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeCheckCycle);
+                    
+                    // Se hace bucle con los timer nuevos.
+                    for (int countIntTimerArr = 0; countIntTimerArr <= getTimerAtLibrary.Count; countIntTimerArr++)
+                    {
+                        DateTime dateTimeInstant = DateTime.Now;
+                        TimeSpan executeATDelay = getTimerAtLibrary[countIntTimerArr] - dateTimeInstant.TimeOfDay;
+                        if (executeATDelay < TimeSpan.Zero)
+                        {
+                            executeATDelay = executeATDelay.Add(TimeSpan.FromDays(1));
+                        }
+                        _myTimer[idx][countIntTimerArr] = new Timer(worker[idx].TimerProcLibrary, o, executeATDelay, new TimeSpan(24, 0, 0));
+                    }
                 }
             }
             catch (Exception e)
@@ -1703,6 +1785,43 @@ namespace ServicioTPVAgenteLocal
         //    }
         //} 
         #endregion
+        
 
+        internal List<TimeSpan> ExecuteAT_Of_TimeSpan(string eAT)
+        {
+            List<TimeSpan> _executeATSpan = null;
+            string[] getTimerAT = eAT.Split('|');
+            // Se valida si la cadena es vacia.
+            if(getTimerAT.Length == 0)
+            {
+                return new List<TimeSpan>();
+            }
+
+            List<TimerStructureOfSpan> getHour = null;
+            // Arreglo auxiliar
+            string[] _arrAuxH = null;
+            for (int i = 0; i < getTimerAT.Length; i++)
+            {
+                _arrAuxH = getTimerAT[i].Split(':');
+                if(_arrAuxH.Length == 2)
+                {
+                    getHour.Add(new TimerStructureOfSpan
+                    {
+                        Hour = Convert.ToInt32(_arrAuxH[0]),
+                        Minutes = Convert.ToInt32(_arrAuxH[1])
+                    });
+                }
+                else
+                {
+                    return new List<TimeSpan>();
+                }
+            }
+            // Se manda a parsear a TimeSpan la informacion obtenida.
+            foreach(var _time_of_span in getHour)
+            {
+                _executeATSpan.Add(new TimeSpan(_time_of_span.Hour, _time_of_span.Minutes, 0));
+            }
+            return _executeATSpan;
+        }
     }
 }

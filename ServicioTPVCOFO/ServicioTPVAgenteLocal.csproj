@@ -108,6 +108,7 @@
   <ItemGroup>
     <Compile Include="BatchConfigTPVCOFO.cs" />
     <Compile Include="BE\Configuration\ConfigurationRequest.cs" />
+    <Compile Include="BE\Models\TimerStructureOfSpan.cs" />
     <Compile Include="BE\ResponseApi.cs" />
     <Compile Include="BE\TankGauge\TankGaugeAlarmHistory.cs" />
     <Compile Include="BE\TankGauge\TankGaugeAlarmHistoryRequest.cs" />

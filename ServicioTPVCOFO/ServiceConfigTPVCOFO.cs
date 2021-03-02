@@ -49,8 +49,9 @@ namespace ServicioTPVAgenteLocal
             public string BatchName { get; set; }
             [XmlAttribute()]
             public int TimeMinuteBatchCycle { get; set; }
-
-
+            // MX- Se coloca una variable para la validacion de Hora de ejecucion.
+            [XmlAttribute()]
+            public string ExecuteAt { get; set; }
         }
         public class ServicioWeb
         {
@@ -75,6 +76,9 @@ namespace ServicioTPVAgenteLocal
             //public int TimeMinuteBatchCycle { get; set; }
             [XmlAttribute()]
             public string TypeService { get; set; }//READ OR WRITE
+            // MX- Se coloca una variable para la validacion de Hora de ejecucion.
+            [XmlAttribute()]
+            public string ExecuteAt { get; set; }
 
         }
         public class Socket
@@ -98,7 +102,10 @@ namespace ServicioTPVAgenteLocal
             [XmlAttribute()]
             public string BatchName { get; set; }
             [XmlAttribute()]
-            public int TimeMinuteBatchCycle { get; set; }            
+            public int TimeMinuteBatchCycle { get; set; }
+            // MX- Se coloca una variable para la validacion de Hora de ejecucion.
+            [XmlAttribute()]
+            public string ExecuteAt { get; set; }
         }
         public class Library
         {
@@ -125,6 +132,9 @@ namespace ServicioTPVAgenteLocal
             public string Tanks { get; set; }
             //[XmlAttribute()]
             //public bool bitLogon { get; set; }
+            // MX- Se coloca una variable para la validacion de Hora de ejecucion.
+            [XmlAttribute()]
+            public string ExecuteAt {get; set;}
         }
 
         public class Batch
