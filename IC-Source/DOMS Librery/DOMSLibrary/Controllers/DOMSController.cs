@@ -67,8 +67,8 @@ namespace DOMSLibrary
                 _connectToDOMS(host, posId, maquina);
                 Logger.Log("Llamada Forecourt.EventsDisabled");
                 Forecourt.EventsDisabled = false;
-                Logger.Log("Llamada IFCConfig.TankGauges");
-                TankGaugeCollection tgcSondaa = IFCConfig.TankGauges;
+
+                TankGaugeCollection tgcSondaa = GetTankGaugeCollection();
                 Logger.Log("Llamada IFCConfig.TankGauges con exito", tgcSondaa);
 
                 if (tgcSondaa.Count > 0)
@@ -80,8 +80,8 @@ namespace DOMSLibrary
                             Id = Convert.ToInt32(tankInfo.Id),
                             DataCollection = new List<TankGaugeData>(tankInfo.DataCollection.Count)
                         };
-                        Logger.Log("Llamada TankGaugeDataCollection");
-                        TankGaugeDataCollection tankGaugeDataCollection = tankInfo.DataCollection;
+
+                        TankGaugeDataCollection tankGaugeDataCollection = GetTankGaugeDataCollection(tankInfo);
                         Logger.Log("Llamada TankGaugeDataCollection con exito.", tankGaugeDataCollection);
 
                         foreach (PSS_Forecourt_Lib.TankGaugeData tgdData in tankGaugeDataCollection)
@@ -130,28 +130,26 @@ namespace DOMSLibrary
                 Logger.Log("Llamada Forecourt.EventsDisabled");
                 Forecourt.EventsDisabled = false;
 
-                Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus");
-                Forecourt.GetSiteDeliveryStatus(out byte bitEstadoFlag, out byte bitDeliverySeq, out TankGaugeCollection objtgcTankeDel);
-                Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus con exito", new { bitEstadoFlag, bitDeliverySeq, objtgcTankeDel });
+                GetSiteDeliveryStatusResponse siteDeliveryStatus = GetSiteDeliveryStatus();
+                Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus con exito", new { siteDeliveryStatus });
 
-                if (bitEstadoFlag == 0) // indica que no se obtuvo informe report deilverys.
+                if (siteDeliveryStatus.BitEstadoFlag == 0) // indica que no se obtuvo informe report deilverys.
                 {
-                    Logger.Log("Salida con exito");
+                    Logger.Log("Salida con exito (BitEstadoFlag = 0, no se obtuvo infore report)");
                     return new List<TankDeliveryInfo>();
                 }
 
-                foreach (PSS_Forecourt_Lib.TankGauge tankInfo in objtgcTankeDel)
+                foreach (PSS_Forecourt_Lib.TankGauge tankInfo in siteDeliveryStatus.TankGaugeCollection)
                 {
                     var tank = new TankDeliveryInfo
                     {
                         Id = Convert.ToInt32(tankInfo.Id)
                     };
 
-                    Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus");
-                    DeliveryDataCollection ddcDelivery = tankInfo.GetDeliveryData(bytPosID, out byte byNroReport);
-                    Logger.Log("Llamada Forecourt.GetSiteDeliveryStatus con exito.", new { ddcDelivery, byNroReport });
+                    GetDeliveryDataResponse getDeliveryDataResponse = GetDeliveryData(tankInfo, bytPosID);
+                    Logger.Log("Llamada TankGauge.GetDeliveryData con exito.", new { getDeliveryDataResponse });
 
-                    foreach (DeliveryData tgdData in ddcDelivery)
+                    foreach (DeliveryData tgdData in getDeliveryDataResponse.DeliveryDataCollection)
                     {
                         tank.DeliveriesDataCollection.Add(new DeliveriesData
                         {
@@ -166,7 +164,7 @@ namespace DOMSLibrary
                 }
                 ClrTankDeliveryDataParms ctdParametro = new ClrTankDeliveryDataParms
                 {
-                    DeliveryReportSeqNo = bitDeliverySeq,
+                    DeliveryReportSeqNo = siteDeliveryStatus.BitDeliverySeq,
                     PosId = bytPosID
                 };
 
@@ -210,12 +208,10 @@ namespace DOMSLibrary
                 Logger.Log("Llamada Forecourt.EventsDisabled");
                 Forecourt.EventsDisabled = false;
 
-                Logger.Log("Llamada IFCConfig.FuellingPoints");
-                FuellingPointCollection fpCollection = IFCConfig.FuellingPoints;
+                FuellingPointCollection fpCollection = GetFuellingPointCollection();
                 Logger.Log("Llamada IFCConfig.FuellingPoints con exito.", fpCollection);
 
-                Logger.Log("Llamada IFCConfig.Grades");
-                GradeCollection gcGrade = IFCConfig.Grades;
+                GradeCollection gcGrade = GetGradeCollection();
                 Logger.Log("Llamada IFCConfig.Grades con exito", gcGrade);
 
                 // MX- Se coloca la Interfaz de la invocacion del Fuelling para el Objeto.
@@ -223,8 +219,7 @@ namespace DOMSLibrary
                 {
                     FuellingPointTotals fptPunto = fuellingPoint.Totals[FpTotalTypes.GT_FUELLING_POINT_TOTAL];
 
-                    Logger.Log("Llamada GradeTotals");
-                    GradeTotalCollection gradeTotals = fptPunto.GradeTotals;
+                    GradeTotalCollection gradeTotals = GetGradeTotalCollection(fptPunto);
                     Logger.Log("Llamada GradeTotals con exito.", gradeTotals);
                     foreach (GradeTotal gradeTotal in gradeTotals)
                     {
@@ -254,7 +249,8 @@ namespace DOMSLibrary
                 _DOMSSemaphore.Release();
             }
         }
-
+       
+        #region Function Privates
 
         /// <summary>
         /// PRECONDITION: LLAMAR DENTRO DE BLOQUE CRITICO
@@ -311,5 +307,177 @@ namespace DOMSLibrary
             } while ((cnt < 3) && !auxLogon);
 
         }
+
+        /// <summary>
+        /// Obtiene los TankGauges desde IFC.
+        /// Se debe llamar desde un bloque critico.
+        /// Realizara una serie de intentos para obtener la lectura, si no lo consigue fallará
+        /// </summary>
+        /// <returns></returns>
+        private TankGaugeCollection GetTankGaugeCollection()
+        {
+            for (int i = 0; i < Configuration.MaxAttemptsToReadTankGauges; i++)
+            {
+                Logger.Log($"Intento {i + 1} de lectura TankGauge");
+                TankGaugeCollection ret = IFCConfig.TankGauges;
+                if (ret.Count > 0)
+                {
+                    return ret;
+                }
+                Logger.Log($"Intento {i + 1} de lectura TankGauge con resultado vacio. Paramos hilo {Configuration.SleepingMillisecondsBetweenAttemptsToReadTankGauges} ms");
+
+                System.Threading.Thread.CurrentThread.Join(Configuration.SleepingMillisecondsBetweenAttemptsToReadTankGauges);
+            }
+            throw new InvalidOperationException($"No se ha recuperado TankGauges tras {Configuration.MaxAttemptsToReadTankGauges} intentos");
+        }
+
+        /// <summary>
+        /// Obtiene TankGaugeDataCollection desde informacion de tankGauge
+        /// Debe llamarse desde bloque critico
+        /// Realizara una serie de intentos para obtener la lectura, si no lo consigue fallará
+        /// </summary>
+        /// <param name="tankInfo"></param>
+        /// <returns></returns>
+        private TankGaugeDataCollection GetTankGaugeDataCollection(PSS_Forecourt_Lib.TankGauge tankInfo)
+        {
+            for (int i = 0; i < Configuration.MaxAttemptsToReadTankGaugeData; i++)
+            {
+                Logger.Log($"Intento {i + 1} de lectura TankGaugeDataCollection");
+                TankGaugeDataCollection ret = tankInfo.DataCollection;
+                if (ret.Count > 0)
+                {
+                    return ret;
+                }
+                Logger.Log($"Intento {i + 1} de lectura TankGaugeDataCollection con resultado vacio. Paramos hilo {Configuration.SleepingMillisecondsBetweenAttemptsToReadTankGaugeData} ms");
+
+                System.Threading.Thread.CurrentThread.Join(Configuration.SleepingMillisecondsBetweenAttemptsToReadTankGaugeData);
+            }
+            throw new InvalidOperationException($"No se ha recuperado TankGaugeDataCollection tras {Configuration.MaxAttemptsToReadTankGaugeData} intentos");
+        }
+
+        /// <summary>
+        /// Obtiene los FuellingPointCollection desde IFC.
+        /// Se debe llamar desde un bloque critico.
+        /// Realizara una serie de intentos para obtener la lectura, si no lo consigue fallará
+        /// </summary>
+        /// <returns></returns>
+        private FuellingPointCollection GetFuellingPointCollection()
+        {
+            for (int i = 0; i < Configuration.MaxAttemptsToReadFuellingPoints; i++)
+            {
+                Logger.Log($"Intento {i + 1} de lectura FuellingPointCollection");
+                FuellingPointCollection ret = IFCConfig.FuellingPoints;
+                if (ret.Count > 0)
+                {
+                    return ret;
+                }
+                Logger.Log($"Intento {i + 1} de lectura FuellingPointCollection con resultado vacio. Paramos hilo {Configuration.SleepingMillisecondsBetweenAttempsToReadFuellingPoints} ms");
+
+                System.Threading.Thread.CurrentThread.Join(Configuration.SleepingMillisecondsBetweenAttempsToReadFuellingPoints);
+            }
+            throw new InvalidOperationException($"No se ha recuperado FuellingPointCollection tras {Configuration.MaxAttemptsToReadFuellingPoints} intentos");
+        }
+
+        /// <summary>
+        /// Obtiene los GradeCollection desde IFC.
+        /// Se debe llamar desde un bloque critico.
+        /// Realizara una serie de intentos para obtener la lectura, si no lo consigue fallará
+        /// </summary>
+        /// <returns></returns>
+        private GradeCollection GetGradeCollection()
+        {
+            for (int i = 0; i < Configuration.MaxAttemptsToReadGrades; i++)
+            {
+                Logger.Log($"Intento {i + 1} de lectura GradeCollection");
+                GradeCollection ret = IFCConfig.Grades;
+                if (ret.Count > 0)
+                {
+                    return ret;
+                }
+                Logger.Log($"Intento {i + 1} de lectura GradeCollection con resultado vacio. Paramos hilo {Configuration.SleepingMillisecondsBetweenAttempsToReadGrades} ms");
+
+                System.Threading.Thread.CurrentThread.Join(Configuration.SleepingMillisecondsBetweenAttempsToReadGrades);
+            }
+            throw new InvalidOperationException($"No se ha recuperado GradeCollection tras {Configuration.MaxAttemptsToReadGrades} intentos");
+        }
+
+        /// <summary>
+        /// Obtiene los GradeCollection desde IFC.
+        /// Se debe llamar desde un bloque critico.
+        /// Realizara una serie de intentos para obtener la lectura, si no lo consigue fallará
+        /// </summary>
+        /// <returns></returns>
+        private GradeTotalCollection GetGradeTotalCollection(FuellingPointTotals fptPunto)
+        {
+            for (int i = 0; i < Configuration.MaxAttemptsToReadGradeTotals; i++)
+            {
+                Logger.Log($"Intento {i + 1} de lectura GradeTotals");
+                GradeTotalCollection ret = fptPunto.GradeTotals;
+                if (ret.Count > 0)
+                {
+                    return ret;
+                }
+                Logger.Log($"Intento {i + 1} de lectura GradeTotals con resultado vacio. Paramos hilo {Configuration.SleepingMillisecondsBetweenAttempsToReadGradeTotals} ms");
+
+                System.Threading.Thread.CurrentThread.Join(Configuration.SleepingMillisecondsBetweenAttempsToReadGradeTotals);
+            }
+            throw new InvalidOperationException($"No se ha recuperado GradeTotals tras {Configuration.MaxAttemptsToReadGradeTotals} intentos");
+        }
+
+        /// <summary>
+        /// Obtiene GetSiteDeliveryStatus desde Forecourt.
+        /// Se debe llamar desde un bloque critico.
+        /// Realizara una serie de intentos para obtener la lectura, si no lo consigue fallará
+        /// </summary>
+        /// <returns></returns>
+        private GetSiteDeliveryStatusResponse GetSiteDeliveryStatus()
+        {
+            for (int i = 0; i < Configuration.MaxAttemptsToReadSiteDeliveryStatus; i++)
+            {
+                Logger.Log($"Intento {i + 1} de lectura SiteDeliveryStatus");
+                Forecourt.GetSiteDeliveryStatus(out byte bitEstadoFlag, out byte bitDeliverySeq, out TankGaugeCollection objtgcTankeDel);
+                if (objtgcTankeDel != null && objtgcTankeDel.Count > 0)
+                {
+                    return new GetSiteDeliveryStatusResponse
+                    {
+                        BitDeliverySeq = bitDeliverySeq,
+                        BitEstadoFlag = bitEstadoFlag,
+                        TankGaugeCollection = objtgcTankeDel
+                    };
+                }
+                Logger.Log($"Intento {i + 1} de lectura SiteDeliveryStatus con resultado vacio. Paramos hilo {Configuration.SleepingMillisecondsBetweenAttempsToReadSiteDeliveryStatus} ms");
+
+                System.Threading.Thread.CurrentThread.Join(Configuration.SleepingMillisecondsBetweenAttempsToReadSiteDeliveryStatus);
+            }
+            throw new InvalidOperationException($"No se ha recuperado SiteDeliveryStatus tras {Configuration.MaxAttemptsToReadSiteDeliveryStatus} intentos");
+        }
+
+        /// <summary>
+        /// Obtiene GetDeliveryData desde TankGauge.
+        /// Se debe llamar desde un bloque critico.
+        /// Realizara una serie de intentos para obtener la lectura, si no lo consigue fallará
+        /// </summary>
+        /// <returns></returns>
+        private GetDeliveryDataResponse GetDeliveryData(PSS_Forecourt_Lib.TankGauge tankInfo, byte bytPosId)
+        {
+            for (int i = 0; i < Configuration.MaxAttemptsToReadDeliveryData; i++)
+            {
+                Logger.Log($"Intento {i + 1} de lectura DeliveryData");
+                DeliveryDataCollection ddcDelivery = tankInfo.GetDeliveryData(bytPosId, out byte byNroReport);
+                if (ddcDelivery != null && ddcDelivery.Count > 0)
+                {
+                    return new GetDeliveryDataResponse
+                    {
+                        ByNroReport = byNroReport,
+                        DeliveryDataCollection = ddcDelivery
+                    };
+                }
+                Logger.Log($"Intento {i + 1} de lectura DeliveryData con resultado vacio. Paramos hilo {Configuration.SleepingMillisecondsBetweenAttempsToReadDeliveryData} ms");
+
+                System.Threading.Thread.CurrentThread.Join(Configuration.SleepingMillisecondsBetweenAttempsToReadDeliveryData);
+            }
+            throw new InvalidOperationException($"No se ha recuperado DeliveryData tras {Configuration.MaxAttemptsToReadDeliveryData} intentos");
+        }
+        #endregion
     }
 }

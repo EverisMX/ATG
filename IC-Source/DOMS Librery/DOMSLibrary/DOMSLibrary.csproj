@@ -85,12 +85,15 @@
     <Compile Include="Models\DeliveriesData.cs" />
     <Compile Include="Models\FuellingPoinsTotals.cs" />
     <Compile Include="Models\FuellingPointData.cs" />
+    <Compile Include="Models\GetDeliveryDataResponse.cs" />
+    <Compile Include="Models\GetSiteDeliveryStatusResponse.cs" />
     <Compile Include="Models\GradesFuelling.cs" />
     <Compile Include="Models\GradesFuellingTotals.cs" />
     <Compile Include="Models\TankDeliveryInfo.cs" />
     <Compile Include="Models\TankGauge.cs" />
     <Compile Include="Models\TankGaugeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utility\Configuration.cs" />
     <Compile Include="Utility\Generic.cs" />
   </ItemGroup>
   <ItemGroup>
