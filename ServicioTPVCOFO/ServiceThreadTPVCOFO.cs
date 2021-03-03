@@ -1,23 +1,17 @@
-﻿using ServicioTPVAgenteLocal.BE;
+﻿using Newtonsoft.Json.Linq;
+using ServicioTPVAgenteLocal.BE;
+using ServicioTPVAgenteLocal.Configuration;
 using ServicioTPVAgenteLocal.Utility;
+using ServicioTPVAgenteLocal.Utility.Enums;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Xml.Serialization;
-using ServicioTPVAgenteLocal.Utility.Enums;
-using Newtonsoft.Json.Linq;
 using System.ServiceProcess;
-using System.Diagnostics;
-using ServicioTPVAgenteLocal.Configuration;
+using System.Threading;
 using System.Web.Script.Serialization;
-using System.Threading.Tasks;
-
-using System.Collections.Generic;
-using System.Collections;
-using System.Text;
-using Newtonsoft.Json;
+using System.Xml.Serialization;
 
 namespace ServicioTPVAgenteLocal
 {
@@ -157,7 +151,7 @@ namespace ServicioTPVAgenteLocal
                     CreatePrimaryThreads(_config.ListServicioWeb, "Batch_Operation_Reconnection");
                 }
                 ServiceLogTPVCOFO.Instance.GrabarLog();
-                 
+
             }
             catch (Exception e)
             {
@@ -258,14 +252,14 @@ namespace ServicioTPVAgenteLocal
                 {
                     if (_myTimer.Count() > 0)
                     {
-                        for (int i = 0; i < _myTimer.Count() ; i++)
+                        for (int i = 0; i < _myTimer.Count(); i++)
                         {
                             // Se recolecta el arr origen en una variable auxiliar para recorrerlo
                             var _arrTimerC = _myTimer[i];
                             if (_arrTimerC != null)
                             {
                                 // Se verifica los timer existentes en la matriz asi para destruir el objeto.
-                                foreach(var _timer in _arrTimerC)
+                                foreach (var _timer in _arrTimerC)
                                 {
                                     _timer.Dispose();
                                 }
@@ -282,11 +276,11 @@ namespace ServicioTPVAgenteLocal
                         {
                             _multithread.Thread[i].Join(1000);
                             _multithread.Thread[i].Abort();
-                        }  
+                        }
                     }
                 }
 
-                
+
 
                 //fnCleanAlarm();
 
@@ -430,7 +424,8 @@ namespace ServicioTPVAgenteLocal
                     objThread.Start(this);
                     _multithread.Thread[1] = objThread;
                 }
-                else {
+                else
+                {
                     ServiceLogTPVCOFO.Instance.WriteLine("No se tiene Confgiuración de Hilo para Detener Servicio.", true);
                 }
                 ServiceLogTPVCOFO.Instance.WriteLine("Fin Hilo Stop*******************", true);
@@ -550,16 +545,16 @@ namespace ServicioTPVAgenteLocal
                         {
                             //if (_config.ListServicioWeb[i].BatchName != "Batch_FuellingPoints")
                             //{
-                                batchConfig[idxBatch] = new ServiceConfigTPVCOFO.Batch
-                                {
-                                    BatchName = _config.ListServicioWeb[i].BatchName,
-                                    iExecutionState = 0,
-                                    sNextExecutionDatetime = ""
-                                    //, TimeMinuteBatchCycle = _config.ListServicioWeb[i].TimeMinuteBatchCycle
-                                };
-                                batch[idxBatch] = new ServiceBatchTPVCOFO();
-                                worker[i + (TOTAL_HOST)] = new ServiceWorkerTPVCOFO(_config.ListServicioWeb[i], i, batch[idxBatch], batchConfig[idxBatch]);
-                                //flagFuelling = true;
+                            batchConfig[idxBatch] = new ServiceConfigTPVCOFO.Batch
+                            {
+                                BatchName = _config.ListServicioWeb[i].BatchName,
+                                iExecutionState = 0,
+                                sNextExecutionDatetime = ""
+                                //, TimeMinuteBatchCycle = _config.ListServicioWeb[i].TimeMinuteBatchCycle
+                            };
+                            batch[idxBatch] = new ServiceBatchTPVCOFO();
+                            worker[i + (TOTAL_HOST)] = new ServiceWorkerTPVCOFO(_config.ListServicioWeb[i], i, batch[idxBatch], batchConfig[idxBatch]);
+                            //flagFuelling = true;
                             /*}
                             else
                             {
@@ -572,11 +567,11 @@ namespace ServicioTPVAgenteLocal
 
                         //if (flagFuelling) // ILION- el validador.
                         //{
-                            objThread = new Thread(ThreadWS);
-                            objThread.Name = "" + (i + TOTAL_HOST);
-                            objThread.Start(this);
-                            _multithread.Thread[i + TOTAL_HOST] = objThread;
-                            idxBatch += 1;
+                        objThread = new Thread(ThreadWS);
+                        objThread.Name = "" + (i + TOTAL_HOST);
+                        objThread.Start(this);
+                        _multithread.Thread[i + TOTAL_HOST] = objThread;
+                        idxBatch += 1;
                         //}
                     }
                 }
@@ -625,16 +620,16 @@ namespace ServicioTPVAgenteLocal
                                 // ILION- Se agrega una condicion para que no se agarre los fuelings y las alams.
                                 //if (_config.ListLibrary[i].BatchName != "Batch_FuellingPoints")
                                 //{
-                                    batchConfig[idxBatch] = new ServiceConfigTPVCOFO.Batch
-                                    {
-                                        BatchName = _config.ListLibrary[i].BatchName,
-                                        iExecutionState = 0,
-                                        sNextExecutionDatetime = "",
-                                        //TimeMinuteBatchCycle = _config.ListLibrary[i].TimeMinuteBatchCycle
-                                    };
-                                    batch[idxBatch] = new ServiceBatchTPVCOFO();
-                                    worker[i + (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)] = new ServiceWorkerTPVCOFO(_config.ListLibrary[i], i, batch[idxBatch], batchConfig[idxBatch]);
-                                    //flagFuelling = true;
+                                batchConfig[idxBatch] = new ServiceConfigTPVCOFO.Batch
+                                {
+                                    BatchName = _config.ListLibrary[i].BatchName,
+                                    iExecutionState = 0,
+                                    sNextExecutionDatetime = "",
+                                    //TimeMinuteBatchCycle = _config.ListLibrary[i].TimeMinuteBatchCycle
+                                };
+                                batch[idxBatch] = new ServiceBatchTPVCOFO();
+                                worker[i + (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)] = new ServiceWorkerTPVCOFO(_config.ListLibrary[i], i, batch[idxBatch], batchConfig[idxBatch]);
+                                //flagFuelling = true;
                                 /*}
                                 else
                                 {
@@ -647,10 +642,10 @@ namespace ServicioTPVAgenteLocal
 
                             //if (flagFuelling)
                             //{
-                                objThread = new Thread(ThreadLibrary);
-                                objThread.Name = "" + (i + TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET);
-                                objThread.Start(this);
-                                _multithread.Thread[i + TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET] = objThread;
+                            objThread = new Thread(ThreadLibrary);
+                            objThread.Name = "" + (i + TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET);
+                            objThread.Start(this);
+                            _multithread.Thread[i + TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET] = objThread;
                             //}
                         }
                     }
@@ -719,7 +714,7 @@ namespace ServicioTPVAgenteLocal
 
                     ServiceLogTPVCOFO.Instance.WriteLine("Inicio Configuración Inicial.Sin crear");
                     //Comprobar entorno donde se encuentra el TPV y escribir EndPoint correspondiente
-                    if(File.Exists(iniPath))
+                    if (File.Exists(iniPath))
                     {
                         strEnvironment = File.ReadLines(@"C:\Cetel\SpecialParameters.ini").Skip(1).Take(1).First();
                         strEnvironment = strEnvironment.Substring(strEnvironment.IndexOf('=') + 1);
@@ -742,7 +737,7 @@ namespace ServicioTPVAgenteLocal
                     {
                         strUrlServidor = @"http://heraeveriliondev.cloudapp.net/ilionservices4/WS_MX_COFOWSInterface/";
                     }
-                    
+
                     arrServicioWeb = new ServiceConfigTPVCOFO.ServicioWeb[3];
 
                     #region ArrServicioWeb[0]
@@ -817,7 +812,7 @@ namespace ServicioTPVAgenteLocal
                         {
                             foreach (ServiceConfigTPVCOFO.ServicioWeb value in _config.ListServicioWeb)
                             {
-                                TOTAL_WS +=1;
+                                TOTAL_WS += 1;
                                 if (value.BitSaveResponse)
                                 { intCantBatch += 1; }
                             }
@@ -1172,7 +1167,7 @@ namespace ServicioTPVAgenteLocal
                             }
 
                             if (_config.ListLibrary != null)
-                            { 
+                            {
                                 foreach (ServiceConfigTPVCOFO.Library value in _config.ListLibrary)
                                 {
                                     TOTAL_LIBRARY += 1;
@@ -1266,14 +1261,15 @@ namespace ServicioTPVAgenteLocal
             try
             {
                 int idx = Convert.ToInt32(Thread.CurrentThread.Name);
-                ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Host: " + idx + " " + _config.ListHosts[idx].HostName + " - StartDelay: " + _config.ListHosts[idx].TimeStartDelay + " - CheckCycle: " + _config.ListHosts[idx].TimeCheckCycle);
+                ServiceConfigTPVCOFO.Host config = _config.ListHosts[idx];
+                ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Host: " + idx + " " + config.HostName + " - StartDelay: " + config.TimeStartDelay + " - CheckCycle: " + config.TimeCheckCycle);
 
                 // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
-                var getTimerAtProc = ExecuteAT_Of_TimeSpan(_config.ListHosts[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                var getTimerAtProc = ExecuteAT_Of_TimeSpan(config.ExecuteAt);
                 // Se crea un nuevo objeto timer para el proceso.
                 _myTimer[idx] = new Timer[getTimerAtProc.Count + 1];
                 // Esto es el Hilo original.
-                _myTimer[idx][0] = new Timer(worker[idx].TimerProcHost, o, _config.ListHosts[idx].TimeStartDelay, _config.ListHosts[idx].TimeCheckCycle);
+                _myTimer[idx][0] = new Timer(worker[idx].TimerProcHost, o, config.TimeStartDelay, config.TimeCheckCycle);
 
                 // Se hace bucle con los timer nuevos.
                 for (int countIntTimerArr = 0; countIntTimerArr < getTimerAtProc.Count; countIntTimerArr++)
@@ -1284,7 +1280,7 @@ namespace ServicioTPVAgenteLocal
                     {
                         executeATDelay = executeATDelay.Add(TimeSpan.FromDays(1));
                     }
-                    _myTimer[idx][countIntTimerArr +1 ] = new Timer(worker[idx].TimerProcHost, o, executeATDelay, new TimeSpan(24, 0, 0));
+                    _myTimer[idx][countIntTimerArr + 1] = new Timer(worker[idx].TimerProcHost, o, executeATDelay, new TimeSpan(24, 0, 0));
                 }
             }
             catch (Exception e)
@@ -1306,14 +1302,15 @@ namespace ServicioTPVAgenteLocal
                 //ServiceLogTPVCOFO.Instance.WriteLine("ILION- Se omitira la configuracion de los metodos de WS de volcado de los batchs");
 
                 idx = Convert.ToInt32(Thread.CurrentThread.Name);
-                ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called WS: " + idx + " " + _config.ListServicioWeb[idx - TOTAL_HOST].EndPoint + " - StartDelay: " + _config.ListServicioWeb[idx - TOTAL_HOST].TimeStartDelay + " - CheckCycle: " + _config.ListServicioWeb[idx - TOTAL_HOST].TimeCheckCycle + " - ExecuteAt: " + _config.ListServicioWeb[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
-                
+                ServiceConfigTPVCOFO.ServicioWeb config = _config.ListServicioWeb[idx - TOTAL_HOST];
+                ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called WS: " + idx + " " + config.EndPoint + " - StartDelay: " + config.TimeStartDelay + " - CheckCycle: " + config.TimeCheckCycle + " - ExecuteAt: " + config.ExecuteAt);
+
                 // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
-                var getTimerAtWS = ExecuteAT_Of_TimeSpan(_config.ListServicioWeb[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                var getTimerAtWS = ExecuteAT_Of_TimeSpan(config.ExecuteAt);
                 // Se crea un nuevo objeto timer para el proceso.
                 _myTimer[idx] = new Timer[getTimerAtWS.Count + 1];
                 // Esto es el Hilo original.
-                _myTimer[idx][0] = new Timer(worker[idx].TimerProcWebService, o, _config.ListServicioWeb[idx - TOTAL_HOST].TimeStartDelay, _config.ListServicioWeb[idx - TOTAL_HOST].TimeCheckCycle);
+                _myTimer[idx][0] = new Timer(worker[idx].TimerProcWebService, o, config.TimeStartDelay, config.TimeCheckCycle);
 
                 // Se hace bucle con los timer nuevos.
                 for (int countIntTimerArr = 0; countIntTimerArr < getTimerAtWS.Count; countIntTimerArr++)
@@ -1324,7 +1321,7 @@ namespace ServicioTPVAgenteLocal
                     {
                         executeATDelay = executeATDelay.Add(TimeSpan.FromDays(1));
                     }
-                    _myTimer[idx][countIntTimerArr +1] = new Timer(worker[idx].TimerProcWebService, o, executeATDelay, new TimeSpan(24, 0, 0));
+                    _myTimer[idx][countIntTimerArr + 1] = new Timer(worker[idx].TimerProcWebService, o, executeATDelay, new TimeSpan(24, 0, 0));
                 }
             }
             catch (Exception e)
@@ -1345,14 +1342,15 @@ namespace ServicioTPVAgenteLocal
             try
             {
                 idx = Convert.ToInt32(Thread.CurrentThread.Name);
-                ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Socket: " + idx + " sIP:" + _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].IP + " iPuerto:" + _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].Puerto + " - CheckCycle: " + _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle + " - ExecuteAt: " + _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
-                
+                ServiceConfigTPVCOFO.Socket config = _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)];
+                ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Socket: " + idx + " sIP:" + config.IP + " iPuerto:" + config.Puerto + " - CheckCycle: " + config.TimeCheckCycle + " - ExecuteAt: " + config.ExecuteAt);
+
                 // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
-                var getTimerAtSocket = ExecuteAT_Of_TimeSpan(_config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                var getTimerAtSocket = ExecuteAT_Of_TimeSpan(config.ExecuteAt);
                 // Se crea un nuevo objeto timer para el proceso.
                 _myTimer[idx] = new Timer[getTimerAtSocket.Count + 1];
                 // Esto es el Hilo original.
-                _myTimer[idx][0] = new Timer(worker[idx].TimerProcSocket, o, _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle, _config.ListSocket[idx - (TOTAL_HOST + TOTAL_WS)].TimeCheckCycle);
+                _myTimer[idx][0] = new Timer(worker[idx].TimerProcSocket, o, config.TimeCheckCycle, config.TimeCheckCycle);
 
                 // Se hace bucle con los timer nuevos.
                 for (int countIntTimerArr = 0; countIntTimerArr < getTimerAtSocket.Count; countIntTimerArr++)
@@ -1363,7 +1361,7 @@ namespace ServicioTPVAgenteLocal
                     {
                         executeATDelay = executeATDelay.Add(TimeSpan.FromDays(1));
                     }
-                    _myTimer[idx][countIntTimerArr +1] = new Timer(worker[idx].TimerProcSocket, o, executeATDelay, new TimeSpan(24, 0, 0));
+                    _myTimer[idx][countIntTimerArr + 1] = new Timer(worker[idx].TimerProcSocket, o, executeATDelay, new TimeSpan(24, 0, 0));
                 }
             }
             catch (Exception e)
@@ -1402,15 +1400,16 @@ namespace ServicioTPVAgenteLocal
                 lock (thisLock)
                 {
                     idx = Convert.ToInt32(Thread.CurrentThread.Name);
-                    ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Library: " + idx + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].BatchName + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ClaseName + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].FuncionName + "(" + " " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].Parameters + ") " + "Tank: " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].Tanks + " - StartDelay: " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeStartDelay + " - CheckCycle: " + _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeCheckCycle + " - ExecuteAt: "+ _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                    ServiceConfigTPVCOFO.Library config = _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)];
+                    ServiceLogTPVCOFO.Instance.WriteLine("Thread Proc called Library: " + idx + " " + config.BatchName + " " + config.ClaseName + " " + config.FuncionName + "(" + " " + config.Parameters + ") " + "Tank: " + config.Tanks + " - StartDelay: " + config.TimeStartDelay + " - CheckCycle: " + config.TimeCheckCycle + " - ExecuteAt: " + config.ExecuteAt);
 
                     // Se manda a realizar el parseo de las variables de ExecuteAT del XML de configuracion.
-                    var getTimerAtLibrary = ExecuteAT_Of_TimeSpan(_config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].ExecuteAt);
+                    var getTimerAtLibrary = ExecuteAT_Of_TimeSpan(config.ExecuteAt);
                     // Se crea un nuevo objeto timer para el proceso.
                     _myTimer[idx] = new Timer[getTimerAtLibrary.Count + 1];
                     // Esto es el Hilo original.
-                    _myTimer[idx][0] = new Timer(worker[idx].TimerProcLibrary, o, _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeStartDelay, _config.ListLibrary[idx - (TOTAL_HOST + TOTAL_WS + TOTAL_SOCKET)].TimeCheckCycle);
-                    
+                    _myTimer[idx][0] = new Timer(worker[idx].TimerProcLibrary, o, config.TimeStartDelay, config.TimeCheckCycle);
+
                     // Se hace bucle con los timer nuevos.
                     for (int countIntTimerArr = 0; countIntTimerArr < getTimerAtLibrary.Count; countIntTimerArr++)
                     {
@@ -1803,7 +1802,7 @@ namespace ServicioTPVAgenteLocal
         //    }
         //} 
         #endregion
-        
+
 
         internal List<TimeSpan> ExecuteAT_Of_TimeSpan(string eAT)
         {
@@ -1814,7 +1813,7 @@ namespace ServicioTPVAgenteLocal
             }
             string[] getTimerAT = eAT.Split('|');
             // Se valida si la cadena es vacia.
-            if(getTimerAT.Length == 0)
+            if (getTimerAT.Length == 0)
             {
                 return _executeATSpan;
             }
@@ -1824,14 +1823,14 @@ namespace ServicioTPVAgenteLocal
             for (int i = 0; i < getTimerAT.Length; i++)
             {
                 _arrAuxH = getTimerAT[i].Split(':');
-                if(_arrAuxH.Length == 2)
+                if (_arrAuxH.Length == 2)
                 {
                     _executeATSpan.Add(new TimeSpan(Convert.ToInt32(_arrAuxH[0]), Convert.ToInt32(_arrAuxH[1]), 0));
-                    
+
                 }
-                
+
             }
-            
+
             return _executeATSpan;
         }
     }
