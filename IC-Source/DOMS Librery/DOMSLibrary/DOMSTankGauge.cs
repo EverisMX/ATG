@@ -32,7 +32,7 @@ namespace DOMSLibrary
                 * MX- Se utiliza para obtener los parametros del TankID con el TankGaudeID de la configuracio.
                 */
                 string[] objectItemTanks = strTanksID.Split('|');
-                Thread.Sleep(5000); // Es necesario parar el hilo?
+                
 
                 // obtencion de datos de DOMS
                 IList<TankGauge> tankInfoList = Controller.GetTanksGaugeDataDOMS(pstrHost, pbytPosId, pstrMaquina);
@@ -136,7 +136,6 @@ namespace DOMSLibrary
                 Logger.Log("Entrada", new { pstrHost, pbytPosId, pscompany, pstoreID, psUserID, pstrMaquina, strTanksID });
                 string[] objectItemTanksDev = strTanksID.Split('|');
 
-                Thread.Sleep(5000); // Es necesario parar el hilo?
 
                 // obtencion de datos de DOMS
                 IList<TankDeliveryInfo> tankDeliveryInfoList = Controller.GetDeliveriesTanksGaugeDOMS(pstrHost, pbytPosId, pstrMaquina);
@@ -256,7 +255,6 @@ namespace DOMSLibrary
             try
             {
                 Logger.Log("Entrada", new { pstrHost, pbytPosId, pscompany, pstoreID, psUserID, pstrMaquina });
-                Thread.Sleep(5000); // es necesario parar el hilo?
 
                 strFechaIso = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 

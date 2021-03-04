@@ -28,15 +28,11 @@ namespace DOMSLibrary
         {
             get
             {
-                // inicializa fecha de log
-                if (_dateOfLogFile == null)
-                {
-                    _dateOfLogFile = DateTime.Today;
-                }
                 // si hoy no es la misma fecha del log, borramos cache de ruta al fichero
-                if (DateTime.Today.Date != _dateOfLogFile.Value.Date)
+                if (!_dateOfLogFile.HasValue || DateTime.Today.Date != _dateOfLogFile.Value.Date)
                 {
                     _cachePathFile = string.Empty;
+                    _dateOfLogFile = DateTime.Today;
                 }
                 // si no esta cacheado el path, generamos ruta con la fecha del log
                 if (string.IsNullOrEmpty(_cachePathFile))
